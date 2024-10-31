@@ -32,9 +32,10 @@ url: "https://cloud303.github.io" # the base hostname & protocol for your site, 
 category-list: [Remediation Guides, SOPs]
 
 # Build settings
-theme: minima
+theme: just-the-docs
 plugins:
   - jekyll-feed
+  - jekyll-default-layout
 
 # Exclude from processing.
 # The following items will not be processed, by default.
