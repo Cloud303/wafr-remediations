@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Governance, Compliance, and Evaluation
-permalink: /governance,-compliance,-and-evaluation/
+permalink: /sops/governance-compliance-and-evaluation/
 resource: true
 categories: [SOPs]
 ---
@@ -9,111 +9,117 @@ categories: [SOPs]
 
 ## Overview
 
-This Standard Operating Procedure (SOP) provides guidance on evaluating customer needs, internal customer needs, governance requirements, and compliance requirements. It is intended for use by teams responsible for designing, implementing, and maintaining cloud workloads and services. The purpose is to ensure that workloads and services meet business objectives while adhering to governance and compliance standards.
+This Standard Operating Procedure (SOP) provides guidance on evaluating customer needs, internal customer needs, governance requirements, and compliance requirements. It is intended for use by teams responsible for designing, implementing, and maintaining cloud workloads and services. The purpose is to ensure that workloads and services meet business objectives, comply with regulations and policies, and satisfy both external and internal customer requirements.
 
 ## Evaluate customer needs
 
 ### Why it's important
 
-Understanding and meeting customer needs is critical for delivering value and ensuring customer satisfaction. By evaluating customer needs, organizations can:
+Understanding and meeting external customer needs is critical for:
 
-- Align products and services with customer expectations
-- Identify opportunities for innovation and improvement  
-- Prioritize development efforts
-- Increase customer retention and loyalty
+- Delivering value and ensuring customer satisfaction
+- Aligning technical capabilities with business outcomes
+- Prioritizing development efforts and resources
+- Identifying opportunities for innovation and improvement
 
 ### Implementation guidance
 
 - Involve key stakeholders including business, development, and operations teams
+- Review business goals, needs, and priorities of external customers
+- Establish a shared understanding of how operational practices support business outcomes
 - Work backwards from desired customer outcomes
-- Use mechanisms like surveys, interviews, and analytics to capture customer needs
-- Engage customers directly to validate needs and proposed solutions
-- Create feedback loops to continuously reassess needs as they evolve
+- Implement mechanisms to capture customer feedback and requirements
+- Regularly review and validate that customer needs are being met
 
 ### Additional considerations
 
-- Balance customer desires with business objectives and technical feasibility
-- Account for both functional and non-functional requirements (e.g. performance, reliability)
-- Consider needs of different customer segments
-- Look for unstated or future needs, not just current explicit needs
+- Use data and metrics to measure how well customer needs are being addressed
+- Implement processes to rapidly iterate and improve based on customer feedback
+- Consider both functional and non-functional requirements (e.g. performance, reliability)
+- Look for opportunities to exceed customer expectations and deliver additional value
 
 ## Evaluate internal customer needs  
 
 ### Why it's important
 
-Internal customers (e.g. other teams, departments) often rely on shared services and infrastructure. Understanding their needs is crucial for:
+Understanding internal customer needs helps:
 
-- Enabling productivity across the organization
-- Aligning IT/operations with business goals
-- Optimizing resource allocation
-- Fostering collaboration between teams
+- Align teams and priorities across the organization
+- Improve operational efficiency and effectiveness  
+- Identify opportunities for automation and process improvement
+- Ensure internal teams have the tools and capabilities they need
 
 ### Implementation guidance
 
-- Identify key internal stakeholders and customers
-- Conduct regular meetings and surveys to gather requirements
-- Analyze support tickets and requests to identify common needs
-- Create internal SLAs and measure performance against them
-- Implement self-service capabilities where possible
+- Engage key internal stakeholders including business, development, and operations teams
+- Review business goals, needs, and priorities of internal customers
+- Establish shared understanding of how internal teams support each other
+- Implement mechanisms to gather feedback from internal teams
+- Regularly review internal SLAs and metrics
+- Look for opportunities to reduce toil and improve productivity
 
 ### Additional considerations
 
-- Balance needs of different internal customers
-- Consider impact on external customers
-- Look for opportunities to standardize and consolidate
-- Educate internal customers on costs and tradeoffs
+- Foster a culture of internal customer service across teams
+- Implement self-service capabilities where possible
+- Automate routine tasks to free up time for higher-value work
+- Conduct regular surveys or interviews with internal teams
 
 ## Evaluate governance requirements
 
 ### Why it's important
 
-Governance provides the framework for ensuring that IT and cloud initiatives:
+Proper governance helps:
 
-- Align with business strategy and objectives  
-- Comply with policies and regulations
-- Manage risk appropriately
-- Optimize resource utilization
-- Maintain consistency and standards
+- Ensure compliance with organizational policies and standards  
+- Manage risk and maintain security
+- Provide guardrails for teams to operate efficiently
+- Enable auditability and traceability
 
 ### Implementation guidance
 
-- Work with leadership to define governance principles and policies
-- Implement governance processes (e.g. architecture review boards)
-- Use tools like AWS Organizations and Service Control Policies to enforce governance 
-- Conduct regular audits and assessments
-- Provide governance training and documentation
+- Work with stakeholders to identify governance requirements
+- Review regulatory and compliance obligations
+- Define policies, standards, and controls
+- Implement governance as code where possible
+- Use tools like AWS Config and AWS Organizations to enforce policies
+- Regularly audit and review governance implementation
+- Update governance as business needs and regulatory landscape evolves
 
 ### Additional considerations
 
-- Balance governance with agility - avoid overly restrictive policies
-- Adapt governance for cloud vs traditional IT
-- Consider governance across multi-cloud and hybrid environments
-- Leverage automation to enforce and validate governance
+- Balance governance with team autonomy and agility
+- Implement least-privilege access controls
+- Use automation to reduce human error in governance processes
+- Maintain documentation of governance policies and controls
 
 ## Evaluate compliance requirements
 
 ### Why it's important
 
-Meeting compliance requirements is essential to:
+Meeting compliance requirements is critical for:
 
-- Maintain regulatory compliance and avoid penalties
-- Protect sensitive data and systems
-- Build trust with customers and partners
-- Enable business in regulated industries
-- Reduce risk of security breaches and data loss
+- Maintaining regulatory compliance and avoiding penalties
+- Protecting customer data and privacy
+- Enabling business in regulated industries
+- Building trust with customers and partners
 
 ### Implementation guidance
 
-- Identify applicable compliance standards (e.g. HIPAA, PCI DSS, GDPR)
-- Map compliance controls to cloud services and configurations
-- Implement monitoring and logging to demonstrate compliance
-- Conduct regular compliance audits and penetration tests
-- Use compliance automation tools and managed services where possible
+- Identify applicable compliance frameworks (e.g. HIPAA, PCI DSS, GDPR)
+- Review specific compliance controls and requirements
+- Assess current compliance gaps
+- Implement required security and privacy controls  
+- Use compliance-as-code to automate checks
+- Conduct regular compliance audits and assessments
+- Maintain documentation and evidence of compliance
 
-### Additional considerations 
+### Additional considerations
 
-- Design for compliance from the start - don't bolt on afterwards
-- Stay up to date as compliance standards evolve
-- Consider compliance impacts when evaluating new services/features
-- Balance compliance with usability and innovation
-- Leverage cloud provider compliance programs and documentation
+- Stay up-to-date on evolving compliance landscape
+- Implement data governance and classification
+- Use encryption and access controls to protect sensitive data
+- Leverage compliance accelerators and pre-configured environments
+- Consider third-party audits to validate compliance
+
+By following this guidance, teams can ensure their workloads and services meet customer needs, align with business objectives, and satisfy governance and compliance requirements. Regular review and iteration of these processes is key to maintaining alignment as needs evolve over time.
