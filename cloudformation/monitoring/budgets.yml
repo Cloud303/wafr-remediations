@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template has the capability to create budgets for Billing and Cost Management 
+
+Parameters:
+
+  pAmount:
+    Type: Number
+    Description: The cost that is associated with a budget forecast, actual spend, or budget threshold.
+
+  pTimeUnit:
+    Type: String 
+    Description: The length of time until a budget resets the actual and forecasted spend.
+    Default: MONTHLY
+    AllowedValues:
+      - MONTHLY
+      - QUARTERLY
+      - ANNUALLY
+
+  pNotificationThreshold:
+    Type: String
+    Description: Budget threshold percentage for notification
+    Default: 80
+
+  pNotificationEmail:
+    Type: String
+    Description: Email ID for Notifications
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      pAmount:
+        default: Cost/Amount
+      pTimeUnit:
+        default: Time Unit of Budget
+      pNotificationThreshold:
+        default: Budget Threshold for Notification
+      pNotificationEmail:
+        default: Email ID for Notifications
+    
+    ParameterGroups:
+      - Label:
+          default: Budget Settings
+        Parameters:
+            - pAmount
+            - pTimeUnit
+      - Label:
+          default: Budget Notifications
+        Parameters:
+            - pNotificationThreshold
+            - pNotificationEmail
+
+Resources:
+
+  # Budgets
+
+  budgets:
+    Type: AWS::Budgets::Budget
+    Properties: 
+      Budget: 
+        BudgetLimit:  
+          Amount: !Ref pAmount
+          Unit: USD
+        BudgetName: !Sub ${AWS::AccountId}-cloud303-billing-alarm
+        BudgetType: COST
+        CostTypes: # CostTypes is only needed for "COST" type of Budget
+          IncludeCredit: true
+          IncludeDiscount: true
+          IncludeOtherSubscription: true
+          IncludeRecurring: true
+          IncludeRefund: true
+          IncludeSubscription: true
+          IncludeSupport: true
+          IncludeTax: true
+          IncludeUpfront: true
+          UseAmortized: false
+          UseBlended: false
+        TimeUnit: !Ref pTimeUnit
+      NotificationsWithSubscribers: 
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: !Ref pNotificationThreshold
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - Address: !Ref pNotificationEmail
+              SubscriptionType: EMAIL
+
+Outputs:
+  
+  Version:
+    Description: Template Version
+    Value: budgets-0.1
