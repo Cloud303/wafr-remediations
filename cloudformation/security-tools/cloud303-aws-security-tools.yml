@@ -1,0 +1,1494 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template allows to launch CloudTrail in all regions with encrypted logs, config in single region, account-wide GuardDuty with optional malware protection, Inspector and IAM Access Analyzer.
+
+Parameters:
+  # Guardduty
+  pEnableGuardDuty:
+    Type: String
+    Description: Enable GuardDuty account-wide
+    Default: true
+    AllowedValues:
+      - true
+      - false
+
+  pGuardDutyPublishFrequency:
+    Type: String
+    Description: Findings delivery frequency
+    Default: SIX_HOURS
+    AllowedValues:
+      - FIFTEEN_MINUTES
+      - ONE_HOUR
+      - SIX_HOURS
+
+  pGuardDutyMalwareProtection:
+    Type: String
+    Description: Malware Protection generates actionable security findings.
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  # Config
+  pEnableConfig:
+    Type: String
+    Description: Enable Config in deployed region. (Enable only for specific compliance(s) upon client approval)
+    Default: false
+    AllowedValues:
+      - true
+      - false
+      - "AutoDetect"
+
+  pCreateConfigAll:
+    Type: String
+    Description: Choose false if IAM role and S3 bucket already exists.
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  pConfigDeliveryFrequency:
+    Type: String
+    Description: Configuration snapshot delivery frequency
+    Default: One_Hour
+    AllowedValues:
+      - One_Hour
+      - Three_Hours
+      - Six_Hours
+      - Twelve_Hours
+      - TwentyFour_Hours
+
+  # Cloudtrail
+  pEnableCloudtrail:
+    Type: String
+    Description: Enable CloudTrail in all regions
+    Default: true
+    AllowedValues:
+      - true
+      - false
+
+  pLogGroupRetention:
+    Type: Number
+    Description: Retention in days
+    Default: 90
+    AllowedValues:
+      [
+        1,
+        3,
+        5,
+        7,
+        14,
+        30,
+        60,
+        90,
+        120,
+        150,
+        180,
+        365,
+        400,
+        545,
+        731,
+        1827,
+        3653,
+      ]
+
+  # Hipaa
+  pHipaaClient:
+    Type: String
+    Description: Client to follow HIPAA compliance?
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  # Inspector
+  pEnableInspector:
+    Type: String
+    Description: Would you like to deploy notification infrastructure for Amazon Inspector? Only set to 'true' if Inspector has been enabled.
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  pEnableInspectorExport:
+    Type: String
+    Description: An s3 bucket and kms will be generated allowing for easy export of all inspector findings
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  # IAM Access Analyzer
+  pEnableAccessAnalyzer:
+    Type: String
+    Description: Do you want to enable IAM Access Analyzer?
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  pSecurityEmailEndpoint:
+    Type: String
+    Description: Security findings will be sent to this email endpoint.
+    Default: ""
+
+  # Tagging
+  pEnvironmentTag:
+    Type: String
+    Description: Environment for default resource tagging
+    Default: production
+    AllowedValues:
+      - production
+      - development
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      pEnableGuardDuty:
+        default: Enable GuardDuty
+      pGuardDutyPublishFrequency:
+        default: GuardDuty Public Frequency
+      pHipaaClient:
+        default: HIPAA Compliance
+      pEnableConfig:
+        default: Enable Config
+      pCreateConfigAll:
+        default: Create ALL Config Resources
+      pConfigDeliveryFrequency:
+        default: Config Delivery Frequency
+      pLogGroupRetention:
+        default: Log Group Retention
+      pEnableCloudtrail:
+        default: Enable Cloudtrail
+      pEnableInspector:
+        default: Enable Inspector Notifications
+      pEnableInspectorExport:
+        default: Enable Inspector Export
+      pEnableAccessAnalyzer:
+        default: Enable IAM Access Analyzer
+      pGuardDutyMalwareProtection:
+        default: Enable GuardDuty Malware Protection
+      pSecurityEmailEndpoint:
+        default: Securty notifications email endpoint
+      pEnvironmentTag:
+        default: Environment Tag
+
+    ParameterGroups:
+      - Label:
+          default: GuardDuty Settings
+        Parameters:
+          - pEnableGuardDuty
+          - pGuardDutyPublishFrequency
+          - pGuardDutyMalwareProtection
+      - Label:
+          default: Config Settings
+        Parameters:
+          - pEnableConfig
+          - pCreateConfigAll
+          - pConfigDeliveryFrequency
+      - Label:
+          default: CloudTrail Settings
+        Parameters:
+          - pHipaaClient
+          - pEnableCloudtrail
+          - pLogGroupRetention
+      - Label:
+          default: Inspector Settings
+        Parameters:
+          - pEnableInspector
+          - pEnableInspectorExport
+      - Label:
+          default: IAM Access Analyzer Settings
+        Parameters:
+          - pEnableAccessAnalyzer
+      - Label:
+          default: Tagging
+        Parameters:
+          - pEnvironmentTag
+
+Conditions:
+  CreateConfigDeliveryChannelAutoDetect: !Equals [!Ref pEnableConfig, "AutoDetect"]
+  CreateConfigRecorderAutoDetect: !Equals [!Ref pEnableConfig, "AutoDetect"]
+  CondEnableCloudtrail: !Or [!Equals [true, !Ref pEnableCloudtrail], !Equals [true, !Ref pHipaaClient]]
+  CondCreateConfigBucket: !Or [!Equals [!Ref pEnableConfig, "AutoDetect"], !Equals [!Ref pEnableConfig, true], !Equals [true, !Ref pHipaaClient], !Equals [true, !Ref pCreateConfigAll]]
+  CondEnableAllConfigResources: !Or [ !And [!Equals [true, !Ref pEnableConfig], !Equals [true, !Ref pCreateConfigAll]], !Or [!Equals [true, !Ref pHipaaClient], !Equals ["AutoDetect", !Ref pEnableConfig]]]  
+  CondAccessLoggingBucket: !Or [ !Equals [true, !Ref pEnableConfig], !Equals [true, !Ref pEnableCloudtrail], !Equals [true, !Ref pHipaaClient], !Condition CondEnableAllConfigResources]
+  CondEnableOnlyConfigRecorder: !Or [ !And [!Equals [true, !Ref pEnableConfig], !Equals [true, !Ref pCreateConfigAll]], !And [!Equals [true, !Ref pEnableConfig], !Equals [false, !Ref pCreateConfigAll]], !Equals [true, !Ref pHipaaClient]]
+  CondEnableGuardDuty: !Or [!Equals [true, !Ref pEnableGuardDuty], !Equals [true, !Ref pHipaaClient]]
+  CondGuardDutyMalwareProtection: !Equals [true, !Ref pGuardDutyMalwareProtection]
+  CondHipaa: !Equals [true, !Ref pHipaaClient]
+  CondEnableInspector: !Equals [true, !Ref pEnableInspector]
+  CondEnableAccessAnalyzer: !Equals [true, !Ref pEnableAccessAnalyzer]
+  CondEnableInspectorExport: !Equals [true, !Ref pEnableInspectorExport]
+
+Mappings:
+  TemplatesBucket:
+    production:
+      s3Uri: s3://faststak-cloudformation-templates-production/security-tools/aws-config-conformance-packs/Operational-Best-Practices-for-HIPAA-Security.yml
+    development:
+      s3Uri: s3://faststak-cloudformation-templates-development/security-tools/aws-config-conformance-packs/Operational-Best-Practices-for-HIPAA-Security.yml
+      
+
+Resources:
+  #
+  # Access Logging Bucket - CloudTrail and Config
+  #
+  accessLoggingBucket:
+    Type: AWS::S3::Bucket
+    Condition: CondAccessLoggingBucket
+    Properties:
+      BucketName: !Sub ${AWS::AccountId}-s3-access-logging
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: access-logs-archive-and-delete
+            Status: Enabled
+            Transition:
+              StorageClass: DEEP_ARCHIVE
+              TransitionInDays: 60
+            ExpirationInDays: !If [CondHipaa, 2555, 730] #deleted after 2 years if non-HIPAA client. Retained for 7 years if HIPAA
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+
+  AWSLoggingBucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Condition: CondHipaa
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Bucket: !Ref accessLoggingBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Id: AWSLoggingAccessToBucket
+        Statement:
+          - Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource: !Join
+              - ""
+              - - !GetAtt
+                  - accessLoggingBucket
+                  - Arn
+                - /*
+            Condition:
+              Bool:
+                "aws:SecureTransport": "false"
+          - Sid: Restrict Delete* Actions
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:Delete*"
+            Resource: !Join
+              - ""
+              - - !GetAtt
+                  - accessLoggingBucket
+                  - Arn
+                - /*
+          - Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:PutObject"
+            Resource: !Join
+              - ""
+              - - !GetAtt
+                  - accessLoggingBucket
+                  - Arn
+                - /*
+            Condition:
+              StringNotEquals:
+                "s3:x-amz-server-side-encryption": AES256
+          - Sid: AllowLogDelivery
+            Effect: Allow
+            Principal:
+              Service: "delivery.logs.amazonaws.com"
+            Action:
+              - "s3:PutObject"
+              - "s3:GetBucketAcl"
+            Resource:
+              - !Join
+                - ""
+                - - !GetAtt
+                    - accessLoggingBucket
+                    - Arn
+                  - /*
+            Condition:
+              StringEquals:
+                "s3:x-amz-acl": "bucket-owner-full-control"
+  #
+  # CloudTrail Resources
+  #
+  CloudwatchAlarmsTopic:
+    Type: "AWS::SNS::Topic"
+    Condition: CondHipaa
+    Properties:
+      TopicName: !Sub cloudwatch-alarms-${AWS::Region}-notification
+      # Removed this as it was causing issues with Cloudtrail - Need to look into it
+      # KmsMasterKeyId: alias/aws/sns
+      Subscription:
+        - Endpoint: !Ref pSecurityEmailEndpoint
+          Protocol: email
+  
+  
+  SNSSecurityAlarmTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Condition: CondHipaa
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Id: AWSCloudTrailAccessToTopic
+        Statement:   
+          - Sid: TrustAccountToPublishToTopic
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - SNS:GetTopicAttributes
+              - SNS:SetTopicAttributes
+              - SNS:AddPermission
+              - SNS:RemovePermission
+              - SNS:DeleteTopic
+              - SNS:Subscribe
+              - SNS:ListSubscriptionsByTopic
+              - SNS:Publish
+              - SNS:Receive
+            Resource: !Ref CloudwatchAlarmsTopic
+            Condition:
+              StringEquals:
+                AWS:SourceOwner: !Ref AWS::AccountId
+          - Sid: TrustCWEToPublishEventsToTopic
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref CloudwatchAlarmsTopic
+          - Sid: AWSCloudTrailSNSPolicy20131101
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: "SNS:Publish"
+            Resource: !Ref CloudwatchAlarmsTopic
+          - Sid: AWSCloudTrailSNSPolicy20131102
+            Effect: Allow
+            Principal:
+              Service: cloudwatch.amazonaws.com
+            Action: "SNS:Publish"
+            Resource: !Ref CloudwatchAlarmsTopic
+      Topics:
+        - !Ref CloudwatchAlarmsTopic
+
+  cloudtrailKms:
+    Type: AWS::KMS::Key
+    Condition: CondEnableCloudtrail
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: Used to encrypt CloudTrail logs in S3
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub cloudtrail-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - Effect: Allow
+            Action: kms:GenerateDataKey*
+            Resource: "*"
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Condition:
+              StringLike:
+                kms:EncryptionContext:aws:cloudtrail:arn: !Sub arn:aws:cloudtrail:*:${AWS::AccountId}:trail/*
+            Sid: CloudTrail Log Encryption
+          - Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: kms:DescribeKey
+            Resource:
+              - "*"
+            Sid: CloudTrail KMS Describe
+          - Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Sid: IAM Key Control
+          - Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - kms:Decrypt
+              - kms:ReEncryptFrom
+              - sns:*
+            Resource:
+              - "*"
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Ref AWS::AccountId
+              StringLike:
+                kms:EncryptionContext:aws:cloudtrail:arn: !Sub arn:aws:cloudtrail:*:${AWS::AccountId}:trail/*
+            Sid: IAM KMS Decrypt Permissions
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  cloudtrailKmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondEnableCloudtrail
+    Properties:
+      TargetKeyId: !Ref cloudtrailKms
+      AliasName: !Sub alias/cloudtrail/${AWS::Region}
+
+  cloudtrailLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: CondEnableCloudtrail
+    Properties:
+      RetentionInDays: !Ref pLogGroupRetention
+      LogGroupName: !Sub cloudtrail-logs-${AWS::AccountId}
+
+  cloudtrailLogRole:
+    Type: AWS::IAM::Role
+    Condition: CondHipaa
+    Properties:
+      RoleName: !Sub cloudtrail-${AWS::AccountId}-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowFlowLogs
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: "s3:ListBucket"
+                Resource: !GetAtt
+                  - accessLoggingBucket
+                  - Arn
+              - Effect: Allow
+                Action:
+                  - "s3:PutObject"
+                  - "s3:GetObject"
+                Resource: !Join
+                  - ""
+                  - - !GetAtt
+                      - accessLoggingBucket
+                      - Arn
+                    - /*
+          PolicyName: cloudtrail-limited-actions
+
+  cloudWatchRole:
+    Type: "AWS::IAM::Role"
+    Condition: CondEnableCloudtrail
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowFlowLogs
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: "sts:AssumeRole"
+      Description: CloudWatch Role
+      Path: /
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AWSCloudTrailCreateLogStream20141101
+                Effect: Allow
+                Action: "logs:CreateLogStream"
+                Resource: !GetAtt
+                  - cloudtrailLogGroup
+                  - Arn
+              - Sid: AWSCloudTrailPutLogEvents20141101
+                Effect: Allow
+                Action: "logs:PutLogEvents"
+                Resource: !GetAtt
+                  - cloudtrailLogGroup
+                  - Arn
+          PolicyName: cloudwatch-limited-actions
+
+  cloudtrailBucket:
+    Type: AWS::S3::Bucket
+    Condition: CondEnableCloudtrail
+    Properties:
+      BucketName: !Sub cloudtrail-${AWS::AccountId}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Ref cloudtrailKms
+              SSEAlgorithm: aws:kms
+      LoggingConfiguration:
+        DestinationBucketName: !Ref accessLoggingBucket
+        LogFilePrefix: !Sub cloudtrail/cloudtrail-${AWS::AccountId}
+      LifecycleConfiguration:
+        Rules:
+          - Id: cloudtrail-logs-archive-and-delete
+            Status: Enabled
+            Transition:
+              StorageClass: DEEP_ARCHIVE
+              TransitionInDays: 240
+            ExpirationInDays: !If [CondHipaa, 2555, 730] #deleted after 2 years if non-HIPAA client. Retained for 7 years if HIPAA
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+
+  cloudtrailBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: CondEnableCloudtrail
+    Properties:
+      Bucket: !Ref cloudtrailBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: CloudtrailWrite
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub arn:aws:s3:::${cloudtrailBucket}/AWSLogs/${AWS::AccountId}/*
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: bucket-owner-full-control
+          - Sid: CloudtrailACLCheck
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !Sub arn:aws:s3:::${cloudtrailBucket}
+          - Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource: !Sub arn:aws:s3:::${cloudtrailBucket}/*
+            Condition:
+              Bool:
+                "aws:SecureTransport": "false"
+          - Sid: Restrict Delete* Actions
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:Delete*"
+            Resource: !Sub arn:aws:s3:::${cloudtrailBucket}/*
+
+  CloudTrailInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Condition: CondHipaa
+    Properties:
+      Roles:
+        - !Ref cloudtrailLogRole
+      Path: /
+
+  cloudtrail:
+    Type: AWS::CloudTrail::Trail
+    DependsOn: cloudtrailBucketPolicy
+    Condition: CondEnableCloudtrail
+    Properties:
+      TrailName: !Sub cloudtrail-${AWS::AccountId}
+      IsLogging: true
+      S3BucketName: !Sub cloudtrail-${AWS::AccountId}
+      CloudWatchLogsRoleArn: !GetAtt cloudWatchRole.Arn
+      CloudWatchLogsLogGroupArn: !GetAtt cloudtrailLogGroup.Arn
+      IsMultiRegionTrail: true
+      EnableLogFileValidation: true
+      IncludeGlobalServiceEvents: true
+      KMSKeyId: !Ref cloudtrailKms
+      SnsTopicName:
+        !If [
+          CondHipaa,
+          !GetAtt CloudwatchAlarmsTopic.TopicName,
+          !Ref "AWS::NoValue",
+        ]
+
+  MetricFilterCloudTrailChange:
+    Type: "AWS::Logs::MetricFilter"
+    Condition: CondHipaa
+    Properties:
+      FilterPattern: >-
+        {($.eventSource = cloudtrail.amazonaws.com) && (($.eventName !=
+        Describe*) && ($.eventName != Get*) && ($.eventName != Lookup*) &&
+        ($.eventName != List*))}
+      LogGroupName: !Ref cloudtrailLogGroup
+      MetricTransformations:
+        - MetricName: CloudTrailChangeCount
+          MetricNamespace: CloudTrailMetrics
+          MetricValue: "1"
+
+  MetricFilterIAMCreateAccessKey:
+    Type: "AWS::Logs::MetricFilter"
+    Condition: CondHipaa
+    Properties:
+      FilterPattern: "{($.eventName=CreateAccessKey)}"
+      LogGroupName: !Ref cloudtrailLogGroup
+      MetricTransformations:
+        - MetricName: NewAccessKeyCreated
+          MetricNamespace: CloudTrailMetrics
+          MetricValue: "1"
+
+  MetricFilterIAMPolicyChanges:
+    Type: "AWS::Logs::MetricFilter"
+    Condition: CondHipaa
+    Properties:
+      FilterPattern: >-
+        {($.eventName=DeleteGroupPolicy) || ($.eventName=DeleteRolePolicy) ||
+        ($.eventName=DeleteUserPolicy) ||  ($.eventName=PutGroupPolicy) ||
+        ($.eventName=PutRolePolicy) || ($.eventName=PutUserPolicy) ||
+        ($.eventName=CreatePolicy) || ($.eventName=DeletePolicy) ||
+        ($.eventName=CreatePolicyVersion) ||  ($.eventName=DeletePolicyVersion)
+        || ($.eventName=AttachRolePolicy) || ($.eventName=DetachRolePolicy) ||
+        ($.eventName=AttachUserPolicy) || ($.eventName=DetachUserPolicy) ||
+        ($.eventName=AttachGroupPolicy) || ($.eventName=DetachGroupPolicy)}
+      LogGroupName: !Ref cloudtrailLogGroup
+      MetricTransformations:
+        - MetricName: IAMPolicyEventCount
+          MetricNamespace: CloudTrailMetrics
+          MetricValue: "1"
+
+  MetricFilterIAMRootActivity:
+    Type: "AWS::Logs::MetricFilter"
+    Condition: CondHipaa
+    Properties:
+      FilterPattern: >-
+        {($.userIdentity.type = "Root") && ($.userIdentity.invokedBy NOT EXISTS)
+        && ($.eventType != "AwsServiceEvent")}
+      LogGroupName: !Ref cloudtrailLogGroup
+      MetricTransformations:
+        - MetricName: RootUserPolicyEventCount
+          MetricNamespace: CloudTrailMetrics
+          MetricValue: "1"
+
+  MetricFilterNetworkACLChanges:
+    Type: "AWS::Logs::MetricFilter"
+    Condition: CondHipaa
+    Properties:
+      FilterPattern: >-
+        {($.eventName = CreateNetworkAcl) || ($.eventName =
+        CreateNetworkAclEntry) || ($.eventName = DeleteNetworkAcl) ||
+        ($.eventName = DeleteNetworkAclEntry) || ($.eventName =
+        ReplaceNetworkAclEntry) || ($.eventName = ReplaceNetworkAclAssociation)}
+      LogGroupName: !Ref cloudtrailLogGroup
+      MetricTransformations:
+        - MetricName: NetworkAclEventCount
+          MetricNamespace: CloudTrailMetrics
+          MetricValue: "1"
+  MetricFilterSecurityGroupChanges:
+    Type: "AWS::Logs::MetricFilter"
+    Condition: CondHipaa
+    Properties:
+      FilterPattern: >-
+        {($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName =
+        AuthorizeSecurityGroupEgress) || ($.eventName =
+        RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress)
+        || ($.eventName = CreateSecurityGroup) || ($.eventName =
+        DeleteSecurityGroup)}
+      LogGroupName: !Ref cloudtrailLogGroup
+      MetricTransformations:
+        - MetricName: SecurityGroupEventCount
+          MetricNamespace: CloudTrailMetrics
+          MetricValue: "1"
+  MetricFilterUnauthorizedAttempts:
+    Type: "AWS::Logs::MetricFilter"
+    Condition: CondHipaa
+    Properties:
+      FilterPattern: "{($.errorCode=AccessDenied) || ($.errorCode=UnauthorizedOperation)}"
+      LogGroupName: !Ref cloudtrailLogGroup
+      MetricTransformations:
+        - MetricName: UnauthorizedAttemptCount
+          MetricNamespace: CloudTrailMetrics
+          MetricValue: "1"
+  CloudWatchAlarmCloudTrailChange:
+    Type: "AWS::CloudWatch::Alarm"
+    Condition: CondHipaa
+    Properties:
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudwatchAlarmsTopic
+      AlarmDescription: >-
+        Warning: Changes to CloudTrail log configuration detected in this
+        account.
+      AlarmName: cloudtrail-change-alarm
+      MetricName: CloudTrailChangeCount
+      Namespace: CloudTrailMetrics
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+    DependsOn:
+      - MetricFilterCloudTrailChange
+  CloudWatchAlarmIAMCreateAccessKey:
+    Type: "AWS::CloudWatch::Alarm"
+    Condition: CondHipaa
+    Properties:
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudwatchAlarmsTopic
+      AlarmDescription: >-
+        Warning: New IAM access key was created. Please be sure this action was
+        neccessary.
+      AlarmName: iam-create-access-key-alarm
+      MetricName: NewAccessKeyCreated
+      Namespace: CloudTrailMetrics
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+    DependsOn:
+      - MetricFilterIAMCreateAccessKey
+  CloudWatchAlarmIAMPolicyChange:
+    Type: "AWS::CloudWatch::Alarm"
+    Condition: CondHipaa
+    Properties:
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudwatchAlarmsTopic
+      AlarmDescription: "Warning: IAM Configuration changes detected!"
+      AlarmName: iam-policy-change-alarm
+      MetricName: IAMPolicyEventCount
+      Namespace: CloudTrailMetrics
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+    DependsOn:
+      - MetricFilterIAMPolicyChanges
+  CloudWatchAlarmIAMRootActivity:
+    Type: "AWS::CloudWatch::Alarm"
+    Condition: CondHipaa
+    Properties:
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudwatchAlarmsTopic
+      AlarmDescription: "Warning: Root user activity detected!"
+      AlarmName: iam-root-activity-alarm
+      MetricName: RootUserPolicyEventCount
+      Namespace: CloudTrailMetrics
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+    DependsOn:
+      - MetricFilterIAMRootActivity
+  CloudWatchAlarmNetworkACLChanges:
+    Type: "AWS::CloudWatch::Alarm"
+    Condition: CondHipaa
+    Properties:
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudwatchAlarmsTopic
+      AlarmDescription: "Warning: Network ACLs have changed!"
+      AlarmName: network-acl-changes-alarm
+      MetricName: NetworkAclEventCount
+      Namespace: CloudTrailMetrics
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+    DependsOn:
+      - MetricFilterNetworkACLChanges
+  CloudWatchAlarmSecurityGroupChanges:
+    Type: "AWS::CloudWatch::Alarm"
+    Condition: CondHipaa
+    Properties:
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudwatchAlarmsTopic
+      AlarmDescription: "Warning: Security Groups have changed!"
+      AlarmName: security-group-changes-alarm
+      MetricName: SecurityGroupEventCount
+      Namespace: CloudTrailMetrics
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+    DependsOn:
+      - MetricFilterSecurityGroupChanges
+  CloudWatchAlarmUnauthorizedAttempts:
+    Type: "AWS::CloudWatch::Alarm"
+    Condition: CondHipaa
+    Properties:
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudwatchAlarmsTopic
+      AlarmDescription: "Warning: Unauthorized Attempts have been detected!"
+      AlarmName: unauthorized-attempts-alarm
+      MetricName: UnauthorizedAttemptCount
+      Namespace: CloudTrailMetrics
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+    DependsOn:
+      - MetricFilterUnauthorizedAttempts
+  #
+  # Config Resources
+  #
+
+  configRecorderRole:
+    Type: AWS::IAM::Role
+    Condition: CondEnableOnlyConfigRecorder
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: sts:AssumeRole
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWS_ConfigRole
+      Policies:
+        - PolicyName: config-s3-access
+          PolicyDocument:
+            Statement:
+              - Action: s3:PutObject
+                Effect: Allow
+                Resource: !Sub arn:aws:s3:::config-${AWS::AccountId}/*
+                Condition:
+                  StringLike:
+                    s3:x-amz-acl: bucket-owner-full-control
+              - Effect: Allow
+                Resource: !Sub arn:aws:s3:::config-${AWS::AccountId}
+                Action: s3:GetBucketAcl
+            Version: 2012-10-17
+      RoleName: !Sub config-role-${AWS::AccountId}
+
+  configRecorder:
+    Type: AWS::Config::ConfigurationRecorder
+    Condition: CondEnableOnlyConfigRecorder
+    Properties:
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/config-role-${AWS::AccountId}
+      RecordingGroup:
+        AllSupported: true
+        IncludeGlobalResourceTypes: true
+
+  configDelivery:
+    Type: AWS::Config::DeliveryChannel
+    DependsOn: 
+     - configBucket
+    Condition: CondEnableOnlyConfigRecorder
+    Properties:
+      S3BucketName: !Sub config-${AWS::AccountId}
+      S3KeyPrefix: !Sub ${AWS::AccountId}
+      ConfigSnapshotDeliveryProperties:
+        DeliveryFrequency: !Ref pConfigDeliveryFrequency
+
+  configBucket:
+    Type: AWS::S3::Bucket
+    Condition: CondCreateConfigBucket
+    Properties:
+      BucketName: !Sub config-${AWS::AccountId}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref accessLoggingBucket
+        LogFilePrefix: !Sub config/config-${AWS::AccountId}
+      LifecycleConfiguration:
+        Rules:
+          - Id: config-logs-archive-and-delete
+            Status: Enabled
+            Transition:
+              StorageClass: DEEP_ARCHIVE
+              TransitionInDays: 240
+            ExpirationInDays: !If [CondHipaa, 2555, 730] #deleted after 2 years if non-HIPAA client. Retained for 7 years if HIPAA
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+
+  configBucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Condition: CondHipaa
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Bucket: !Ref configBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Id: AWSConfigAccessToBucket
+        Statement:
+          - Sid: AWSConfigBucketPermissionsCheck
+            Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: "s3:GetBucketAcl"
+            Resource: !GetAtt
+              - configBucket
+              - Arn
+          - Sid: AWSConfigBucketDelivery
+            Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: "s3:PutObject"
+            Resource: !Sub arn:aws:s3:::${configBucket}/*
+            Condition:
+              StringEquals:
+                "s3:x-amz-acl": bucket-owner-full-control
+
+  #
+  # Config Conformance Pack
+  #
+
+  AWSConfigHIPAAConformancePack:
+    Type: "AWS::Config::ConformancePack"
+    Condition: CondHipaa
+    DependsOn:
+        - configDelivery
+        - configRecorder
+    Metadata:
+      cfn-lint: { config: { ignore_checks: [W1001] } }
+    Properties:
+      ConformancePackName: aws-config-hipaa-conformance-pack
+      TemplateS3Uri: !FindInMap [TemplatesBucket, !Ref pEnvironmentTag, s3Uri]
+
+  #
+  # Config AutoDetect Enabled
+  #
+
+  ConfigurationRecorder:
+    Type: Custom::CreateConfigRecorder
+    Condition: CreateConfigRecorderAutoDetect
+    Properties:
+      ServiceToken: !GetAtt CreateConfigRecorderLambda.Arn
+      Region: !Ref "AWS::Region"
+      ConfigRole: !Sub arn:aws:iam::${AWS::AccountId}:role/config-role-${AWS::AccountId}
+
+  DeliveryChannel:
+    Metadata:
+      cfn-lint: { config: { ignore_checks: [W1001] } }
+      DependsOn: !Ref ConfigurationRecorder
+    Condition: CreateConfigDeliveryChannelAutoDetect
+    Type: Custom::CreateConfigDeliveryChannel
+    Properties:
+      ServiceToken: !GetAtt CreateConfigDeliveryChannelLambda.Arn
+      Region: !Ref "AWS::Region"
+      Operation: "CheckDeliveryChannel"
+      S3Bucket: !Ref configBucket
+
+  CreateConfigDeliveryChannelLambda:
+    Type: "AWS::Lambda::Function"
+    Condition: CreateConfigDeliveryChannelAutoDetect
+    Properties:
+      Code:
+        ZipFile: |
+          import cfnresponse
+          import boto3
+          import string
+          from botocore.exceptions import ClientError
+          def main_handler(event, context):
+              responseData = {}
+              if event['RequestType'] == 'Create':
+                  s3_bucket_name = event['ResourceProperties']['S3Bucket']
+                  try:
+                      config = boto3.client('config',region_name=event['ResourceProperties']['Region'])
+                      if not len(config.describe_delivery_channels()['DeliveryChannels']):
+                          try:
+                              config.put_delivery_channel(DeliveryChannel={
+                                  'name': 'config-s3-delivery',
+                                  's3BucketName': s3_bucket_name
+                                  })
+                              config.start_configuration_recorder(ConfigurationRecorderName=config.describe_configuration_recorder_status()['ConfigurationRecordersStatus'][0]['name'])
+                              cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                          except ClientError as e:
+                              responseData['error'] = str(e)
+                              responseData['reason'] = 'failed create delivery channel and start config recorder'
+                              cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+                      else:
+                          cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                  except ClientError as e:
+                      responseData['error'] = str(e)
+                      cfnresponse.send(event, context, cfnresponse.FAILED, responseData, 'failed')
+              elif event['RequestType'] == 'Update':
+                  try:
+                      s3_bucket_name = event['ResourceProperties']['S3Bucket']
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                  except ClientError as e:
+                      responseData['error'] = str(e)
+                      cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+              elif event['RequestType'] == 'Delete':
+                  try:
+                      config = boto3.client('config',region_name=event['ResourceProperties']['Region'])
+                      if len(config.describe_configuration_recorders()['ConfigurationRecorders']):
+                          try:
+                              config.stop_configuration_recorder(ConfigurationRecorderName=config.describe_configuration_recorder_status()['ConfigurationRecordersStatus'][0]['name'])
+                              DelChanName = config.describe_delivery_channel_status()['DeliveryChannelsStatus'][0]['name']
+                              config.delete_delivery_channel(DeliveryChannelName = '%s' % DelChanName)
+                              cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                          except ClientError as e:
+                              responseData['error'] = str(e)
+                              responseData['reason'] = 'failed to delete config recorder'
+                              cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+                      else:
+                          cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                  except ClientError as e:
+                      responseData['error'] = str(e)
+                      responseData['reason'] = 'failed to delete config recorder'
+                      cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+              else:
+                  responseData['error'] = 'Operation not supported'
+                  cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+      Description: ConfigDeliveryChannelCustomResource
+      Handler: index.main_handler
+      MemorySize: 128
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.8
+      Timeout: 10
+  CreateConfigRecorderLambda:
+    Type: "AWS::Lambda::Function"
+    Condition: CreateConfigRecorderAutoDetect
+    Properties:
+      Code:
+        ZipFile: |
+          import cfnresponse
+          import boto3
+          import string
+          from botocore.exceptions import ClientError
+          def main_handler(event, context):
+              responseData = {}
+              if event['RequestType'] == 'Create':
+                  try:
+                      configRole = event['ResourceProperties']['ConfigRole']
+                      config = boto3.client('config', region_name=event['ResourceProperties']['Region'])
+                      if not len(config.describe_configuration_recorders()['ConfigurationRecorders']):
+                          try:
+                              config.put_configuration_recorder( ConfigurationRecorder={'name':'default','roleARN': '%s' % configRole,'recordingGroup': {'allSupported' : True, 'includeGlobalResourceTypes': True}})
+                              cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                          except ClientError as e:
+                              responseData['error'] = str(e)
+                              responseData['reason'] = 'failed to create configuration recorder'
+                              cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+                      else:
+                          try:
+                              ConfigurationRecorderName = config.describe_configuration_recorders()['ConfigurationRecorders'][0]['name']
+                              config.put_configuration_recorder( ConfigurationRecorder={'name':'%s' % ConfigurationRecorderName,'roleARN':'%s' % configRole})
+                              cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                          except ClientError as e:
+                              responseData['error'] = str(e)
+                              responseData['reason'] = 'failed to update config recorder IAM role'
+                              cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                  except ClientError as e:
+                      responseData['error'] = str(e)
+                      cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+              elif event['RequestType'] == 'Update':
+                  try:
+                      configRole = event['ResourceProperties']['ConfigRole']
+                      ConfigurationRecorderName = config.describe_configuration_recorders()['ConfigurationRecorders'][0]['name']
+                      config.put_configuration_recorder( ConfigurationRecorder={'name':'%s' % ConfigurationRecorderName,'roleARN':'%s' % configRole})
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                  except ClientError as e:
+                      responseData['error'] = str(e)
+                      cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+              elif event['RequestType'] == 'Delete':
+                  try:
+                      config = boto3.client('config',region_name=event['ResourceProperties']['Region'])
+                      if len(config.describe_configuration_recorders()['ConfigurationRecorders']):
+                          try:
+                              ConfigurationRecorderName = config.describe_configuration_recorders()['ConfigurationRecorders'][0]['name']
+                              config.delete_configuration_recorder(ConfigurationRecorderName='%s' % ConfigurationRecorderName)
+                              cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                          except ClientError as e:
+                              responseData['error'] = str(e)
+                              responseData['reason'] = 'failed to delete config recorder'
+                              cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+                      else:
+                          cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+                  except ClientError as e:
+                      responseData['error'] = str(e)
+                      responseData['reason'] = 'failed to delete config recorder'
+                      cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+              else:
+                  responseData['error'] = 'Operation not supported'
+                  cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+      Description: ConfigRecorderCustomResource
+      Handler: index.main_handler
+      MemorySize: 128
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.8
+      Timeout: 10
+
+  LambdaExecutionRole:
+    Metadata:
+      cfn-lint:
+        {
+          config:
+            {
+              ignore_checks:
+                [EIAMPolicyWildcardResource, EIAMPolicyActionWildcard],
+              ignore_reasons:
+                [
+                  EIAMPolicyWildcardResource: "Requires full access to function",
+                  EIAMPolicyActionWildcard: "Required for proper function",
+                ],
+            },
+        }
+    Type: AWS::IAM::Role
+    Condition: CreateConfigRecorderAutoDetect
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:${AWS::Partition}:logs:*"
+              - Effect: Allow
+                Action:
+                  - config:*ConfigurationRecorder
+                  - config:Describe*
+                  - config:*DeliveryChannel
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/config-role-${AWS::AccountId}
+
+  #
+  # GuardDuty Resources
+  #
+
+  guardDutyDetector:
+    Type: AWS::GuardDuty::Detector
+    Condition: CondEnableGuardDuty
+    Properties:
+      Enable: true
+      FindingPublishingFrequency: !Ref pGuardDutyPublishFrequency
+      DataSources:
+        MalwareProtection:
+          ScanEc2InstanceWithFindings:
+            EbsVolumes:
+              "Fn::If":
+                - CondGuardDutyMalwareProtection
+                - true
+                - !Ref AWS::NoValue
+
+  guardDutySnsTopic:
+    Type: AWS::SNS::Topic
+    Condition: CondEnableGuardDuty
+    Properties:
+      TopicName: !Sub guardduty-${AWS::Region}-findings
+      KmsMasterKeyId: alias/aws/sns
+      Subscription:
+        - Endpoint: !Ref pSecurityEmailEndpoint
+          Protocol: email
+
+  guardDutyCloudwatchEvents:
+    Type: AWS::Events::Rule
+    Condition: CondEnableGuardDuty
+    Properties:
+      Description: !Sub guardduty-findings-${AWS::AccountId}-${AWS::Region}
+      Name: !Sub guardduty-${AWS::Region}-findings-${AWS::AccountId}
+      EventPattern:
+        source:
+          - aws.guardduty
+        detail-type:
+          - GuardDuty Finding
+      State: ENABLED
+      Targets:
+        - Arn: !Ref guardDutySnsTopic
+          Id: 1
+
+  guardDutySnsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Condition: CondEnableGuardDuty
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Sid: TrustAccountToPublishToTopic
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - SNS:GetTopicAttributes
+              - SNS:SetTopicAttributes
+              - SNS:AddPermission
+              - SNS:RemovePermission
+              - SNS:DeleteTopic
+              - SNS:Subscribe
+              - SNS:ListSubscriptionsByTopic
+              - SNS:Publish
+              - SNS:Receive
+            Resource: !Ref guardDutySnsTopic
+            Condition:
+              StringEquals:
+                AWS:SourceOwner: !Ref AWS::AccountId
+          - Sid: TrustCWEToPublishEventsToTopic
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sns:Publish
+            Resource:
+              Ref: guardDutySnsTopic
+      Topics:
+        - Ref: guardDutySnsTopic
+
+  #
+  # AWS Inspector
+  #
+
+  EventRuleForInspector:
+    Type: AWS::Events::Rule
+    Condition: CondEnableInspector
+    Properties:
+      Name: "detect-inspector-finding"
+      Description: "A CloudWatch Event Rule that triggers on Amazon Inspector findings."
+      State: "ENABLED"
+      Targets:
+        - Arn:
+            Ref: inspectorSnsTopic
+          Id: target-id1
+      EventPattern:
+        source:
+          - aws.inspector2
+        detail-type:
+          - "Inspector2 Finding"
+        detail:
+          severity:
+            - "CRITICAL"
+
+  inspectorSnsTopic:
+    Type: AWS::SNS::Topic
+    Condition: CondEnableInspector
+    Properties:
+      TopicName: !Sub inspector-${AWS::Region}-findings
+      KmsMasterKeyId: alias/aws/sns
+      Subscription:
+        - Endpoint: !Ref pSecurityEmailEndpoint
+          Protocol: email
+
+  inspectorSnsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Condition: CondEnableInspector
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Sid: TrustAccountToPublishToTopic
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - SNS:GetTopicAttributes
+              - SNS:SetTopicAttributes
+              - SNS:AddPermission
+              - SNS:RemovePermission
+              - SNS:DeleteTopic
+              - SNS:Subscribe
+              - SNS:ListSubscriptionsByTopic
+              - SNS:Publish
+              - SNS:Receive
+            Resource: !Ref inspectorSnsTopic
+            Condition:
+              StringEquals:
+                AWS:SourceOwner: !Ref AWS::AccountId
+          - Sid: TrustCWEToPublishEventsToTopic
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sns:Publish
+            Resource:
+              Ref: inspectorSnsTopic
+
+      Topics:
+        - Ref: inspectorSnsTopic
+
+  # Create bucket and kets necessary for exporting inspector findings
+  s3Bucket:
+    Type: AWS::S3::Bucket
+    Condition: CondEnableInspectorExport
+    Properties:
+      BucketName: !Sub inspector-findings-${AWS::Region}-${AWS::AccountId}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  s3BucketPolicy:
+    Condition: CondEnableInspectorExport
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref s3Bucket
+      PolicyDocument:
+        Statement:
+          - Sid: AllowInspectorExport
+            Effect: Allow
+            Principal:
+              Service: inspector.amazonaws.com
+            Action:
+              - s3:PutObject
+              - s3:PutObjectAcl
+              - s3:AbortMultipartUpload
+            Resource: !Sub arn:aws:s3:::${s3Bucket}/*
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Sub ${AWS::AccountId}
+              ArnLike:
+                aws:SourceArn: !Sub arn:aws:inspector2:${AWS::Region}:${AWS::AccountId}:report/*
+  kmsKey:
+    Type: AWS::KMS::Key
+    Condition: CondEnableInspectorExport
+    Properties:
+      Description: KMS Key
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: IAM Key Control
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+          - Sid: Allow use of the key
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+            Resource: "*"
+          - Sid: AllowInspectorExport
+            Effect: Allow
+            Principal:
+              Service: inspector.amazonaws.com
+            Action:
+              - kms:Encrypt
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Sub ${AWS::AccountId}
+              ArnLike:
+                aws:SourceArn: !Sub arn:aws:inspector2:${AWS::Region}:${AWS::AccountId}:report/*
+
+  #
+  # IAM Access Analyzer
+  #
+  accessAnalyzer:
+    Type: AWS::AccessAnalyzer::Analyzer
+    Condition: CondEnableAccessAnalyzer
+    Properties:
+      AnalyzerName: ss-test
+      Type: ACCOUNT
+
+  accessAnalyzerSnsTopic:
+    Type: AWS::SNS::Topic
+    Condition: CondEnableAccessAnalyzer
+    Properties:
+      TopicName: !Sub accessAnalyzer-${AWS::Region}-findings
+      KmsMasterKeyId: alias/aws/sns
+      Subscription:
+        - Endpoint: !Ref pSecurityEmailEndpoint
+          Protocol: email
+
+  accessAnalyzerSnsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Condition: CondEnableAccessAnalyzer
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Sid: TrustAccountToPublishToTopic
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - SNS:GetTopicAttributes
+              - SNS:SetTopicAttributes
+              - SNS:AddPermission
+              - SNS:RemovePermission
+              - SNS:DeleteTopic
+              - SNS:Subscribe
+              - SNS:ListSubscriptionsByTopic
+              - SNS:Publish
+              - SNS:Receive
+            Resource: !Ref accessAnalyzerSnsTopic
+            Condition:
+              StringEquals:
+                AWS:SourceOwner: !Ref AWS::AccountId
+          - Sid: TrustCWEToPublishEventsToTopic
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sns:Publish
+            Resource:
+              Ref: accessAnalyzerSnsTopic
+      Topics:
+        - Ref: accessAnalyzerSnsTopic
+
+Outputs:
+  GuardDutyStatus:
+    Value: !Ref pEnableGuardDuty
+    Description: Status of Account-Wide GuardDuty
+
+  GuardDutyMalwareProtectionStatus:
+    Value: !Ref pGuardDutyMalwareProtection
+    Description: Status of Account-Wide GuardDuty MalwareProtection
+
+  InspectorStatus:
+    Value: !Ref pEnableInspector
+    Description: Status of Account-Wide Inspector
+
+  AccessAnalyzerStatus:
+    Value: !Ref pEnableAccessAnalyzer
+    Description: Status of Account-Wide Access Analyzer
+
+  ConfigStatus:
+    Value: !Ref pEnableConfig
+    Description: Status of Region Specific Config
+
+  CloudTrailStatus:
+    Value: !Ref pEnableCloudtrail
+    Description: Status of Account-Wide CloudTrail
+
+  CloudTrailBucket:
+    Condition: CondEnableCloudtrail
+    Value: !Sub cloudtrail-${AWS::AccountId}
+    Description: S3 Bucket storing CloudTrail logs
+
+  CloudTrailLogGroup:
+    Condition: CondEnableCloudtrail
+    Value: !Ref cloudtrailLogGroup
+    Description: Cloudtrail Log Group
+
+  ConfigBucket:
+    Condition: CondEnableAllConfigResources
+    Value: !Sub config-${AWS::AccountId}
+    Description: S3 Bucket storing Config logs
+
+  TemplateVersion:
+    Value: cloud303-aws-security-tools-0.3
+    Description: Template Version 1.2
