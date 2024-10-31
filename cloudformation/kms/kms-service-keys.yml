@@ -1,0 +1,677 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: KMS keys used to encrypt different service resources. Default AWS keys cannot be shared while customer managed keys deployed via this stack can be shared via KMS key policies
+
+
+Parameters:
+
+  pCreateKmsEbsKey:
+    Type: String
+    Default: true
+    AllowedValues:
+      - true
+      - false
+
+  pCreateKmsRdsKey:
+    Type: String
+    Default: true
+    AllowedValues:
+      - true
+      - false
+  
+  pCreateKmsEfsKey:
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+ 
+  pAddBackupAccess:
+    Type: String
+    Description: True adds Backup Role access in EFS KMS
+    Default: false
+    AllowedValues:
+      - true
+      - false 
+
+  pCreateKmsFsxKey:
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  
+  pCreateKmsS3Key:
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  pCreateKmsSsmKey:
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  
+  pCreateKmsEcKey:
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  
+  pCreateKmsEsKey:
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  pCreateKmsCwKey:
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  pCreateKmsTimeStreamKey:
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+Metadata:
+
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      pCreateKmsEbsKey:
+        default: Create KMS EBS Key
+      pCreateKmsRdsKey:
+        default: Create KMS RDS Key
+      pCreateKmsEfsKey:
+        default: Create KMS EFS Key
+      pAddBackupAccess:
+        default: Add Backup Role access in KMS EFS
+      pCreateKmsFsxKey:
+        default: Create KMS FSX Key
+      pCreateKmsS3Key:
+        default: Create KMS S3 Key
+      pCreateKmsSsmKey:
+        default: Create KMS SSM Key
+      pCreateKmsEcKey:
+        default: Create KMS Elasticache Key
+      pCreateKmsEsKey:
+        default: Create KMS Elasticsearch Key
+      pCreateKmsCwKey:
+        default: Create KMS Cloudwatch Logs Key
+      pCreateKmsTimeStreamKey:
+        default: Create KMS TimeStream Key
+
+    ParameterGroups:
+      - Label:
+          default: KMS Settings
+        Parameters:
+          - pCreateKmsEbsKey
+          - pCreateKmsRdsKey
+          - pCreateKmsEfsKey
+          - pAddBackupAccess
+          - pCreateKmsFsxKey
+          - pCreateKmsS3Key
+          - pCreateKmsSsmKey
+          - pCreateKmsEcKey
+          - pCreateKmsEsKey
+          - pCreateKmsCwKey
+          - pCreateKmsTimeStreamKey
+    
+Conditions:
+
+  CondCreateKmsEbsKey: !Equals [true, !Ref pCreateKmsEbsKey]
+  CondCreateKmsRdsKey: !Equals [true, !Ref pCreateKmsRdsKey]
+  CondCreateKmsEfsKey: !Equals [true, !Ref pCreateKmsEfsKey]
+  CondCreateKmsFsxKey: !Equals [true, !Ref pCreateKmsFsxKey]
+  CondCreateKmsS3Key: !Equals [true, !Ref pCreateKmsS3Key]
+  CondCreateKmsSsmKey: !Equals [true, !Ref pCreateKmsSsmKey]
+  CondCreateKmsEcKey: !Equals [true, !Ref pCreateKmsEcKey]
+  CondCreateKmsEsKey: !Equals [true, !Ref pCreateKmsEsKey]
+  CondCreateKmsCwKey: !Equals [true, !Ref pCreateKmsCwKey]
+  CondCreateTimeStreamKey: !Equals [true, !Ref pCreateKmsTimeStreamKey]
+  CondAddBackupAccess: !Equals [true, !Ref pAddBackupAccess]
+
+Resources:
+  #
+  # Account-wide EBS encryption is enforced manually. Once supported by CloudFormation, make sure to add the resource block here. 
+  #
+
+  # EBS KMS Key | Separate IAM Policy not required
+
+  ebsKms:
+    Type: AWS::KMS::Key
+    Condition: CondCreateKmsEbsKey
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: KMS Key for EBS volumes encryption
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub ebs-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - 
+            Sid: IAM Key Control
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root   
+          - 
+            Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:CreateGrant"
+              - "kms:ListGrants"
+              - "kms:DescribeKey"
+            Resource: "*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringEquals:
+                    "kms:ViaService": 
+                      - !Sub "ec2.${AWS::Region}.amazonaws.com"
+                      - "autoscaling.amazonaws.com"
+                    "kms:CallerAccount": !Ref AWS::AccountId
+            Sid: Allow Access to service roles
+
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  ebsKmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondCreateKmsEbsKey
+    Properties:
+      TargetKeyId: !Ref ebsKms
+      AliasName: !Sub alias/ebs/${AWS::Region}
+
+  # RDS KMS Key | Separate IAM Policy not required
+
+  rdsKms:
+    Type: AWS::KMS::Key
+    Condition: CondCreateKmsRdsKey
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: KMS Key for RDS encryption
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub rds-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - 
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Sid: IAM Key Control   
+          - 
+            Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:CreateGrant"
+              - "kms:ListGrants"
+              - "kms:DescribeKey"
+            Resource: "*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringEquals:
+                    "kms:ViaService": !Sub "rds.${AWS::Region}.amazonaws.com"
+                    "kms:CallerAccount": !Ref AWS::AccountId
+            Sid: Allow Access to service roles
+
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  rdsKmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondCreateKmsRdsKey
+    Properties:
+      TargetKeyId: !Ref rdsKms
+      AliasName: !Sub alias/rds/${AWS::Region}
+  
+  # EFS KMS Key | Separate IAM Policy not required
+
+  efsKms:
+    Type: AWS::KMS::Key
+    Condition: CondCreateKmsEfsKey
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: KMS Key for EFS encryption
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub efs-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - 
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Sid: IAM Key Control
+          - !If
+            - CondAddBackupAccess
+            - Effect: Allow
+              Action:
+                - kms:Encrypt
+                - kms:Decrypt
+                - kms:ReEncrypt*
+                - kms:GenerateDataKey*
+                - kms:DescribeKey
+              Resource: "*"
+              Principal:
+                AWS: !Sub arn:aws:iam::${AWS::AccountId}:role/service-role/AWSBackupDefaultServiceRole
+              Sid: Backup Control   
+            - !Ref "AWS::NoValue"
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  efsKmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondCreateKmsEfsKey
+    Properties:
+      TargetKeyId: !Ref efsKms
+      AliasName: !Sub alias/efs/${AWS::Region}
+  
+  # FSX KMS Key | Separate IAM Policy not required
+
+  fsxKms:
+    Type: AWS::KMS::Key
+    Condition: CondCreateKmsFsxKey
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: KMS Key for FSX encryption
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub fsx-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - 
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Sid: IAM Key Control   
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  fsxKmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondCreateKmsFsxKey
+    Properties:
+      TargetKeyId: !Ref fsxKms
+      AliasName: !Sub alias/fsx/${AWS::Region}
+
+  # S3 KMS Key
+
+  s3Kms:
+    Type: AWS::KMS::Key
+    Condition: CondCreateKmsS3Key
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: KMS Key for S3 encryption
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub s3-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - 
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Sid: IAM Key Control   
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  s3KmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondCreateKmsS3Key
+    Properties:
+      TargetKeyId: !Ref s3Kms
+      AliasName: !Sub alias/s3/${AWS::Region}
+
+  # S3 KMS IAM Policy
+
+  s3KmsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: CondCreateKmsS3Key
+    Properties: 
+      Description: Provides encrypt/decrypt access to S3 CMK
+      ManagedPolicyName: !Sub s3-kms-key-policy-${AWS::Region}
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncryptFrom
+              - kms:ReEncryptTo
+              - kms:GenerateDataKey
+              - kms:GenerateDataKeyWithoutPlaintext
+              - kms:DescribeKey
+            Resource:
+              - !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${s3Kms}
+      
+  # SSM KMS Key
+
+  ssmKms:
+    Type: AWS::KMS::Key
+    Condition: CondCreateKmsSsmKey
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: KMS Key for SSM encryption including Parameter Store
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub ssm-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - 
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Sid: IAM Key Control   
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  ssmKmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondCreateKmsSsmKey
+    Properties:
+      TargetKeyId: !Ref ssmKms
+      AliasName: !Sub alias/ssm/${AWS::Region}
+
+  # SSM KMS IAM Policy
+
+  ssmKmsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: CondCreateKmsSsmKey
+    Properties: 
+      Description: Provides encrypt/decrypt access to Systems Manager CMK
+      ManagedPolicyName: !Sub ssm-kms-key-policy-${AWS::Region}
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncryptFrom
+              - kms:ReEncryptTo
+              - kms:GenerateDataKey
+              - kms:GenerateDataKeyWithoutPlaintext
+              - kms:DescribeKey
+            Resource:
+              - !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${ssmKms}
+
+  # Elasticache KMS Key | Separate IAM Policy not required
+
+  ecKms:
+    Type: AWS::KMS::Key
+    Condition: CondCreateKmsEcKey
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: KMS Key for Elasticache cluster encryption
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub elasticache-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - 
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Sid: IAM Key Control   
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  ecKmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondCreateKmsEcKey
+    Properties:
+      TargetKeyId: !Ref ecKms
+      AliasName: !Sub alias/elasticache/${AWS::Region}
+  
+  # Elasticsearch KMS Key
+
+  esKms:
+    Type: AWS::KMS::Key
+    Condition: CondCreateKmsEsKey
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: KMS Key for Elasticsearch cluster encryption
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub elasticsearch-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - 
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Sid: IAM Key Control   
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  esKmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondCreateKmsEsKey
+    Properties:
+      TargetKeyId: !Ref esKms
+      AliasName: !Sub alias/elasticsearch/${AWS::Region}
+
+  # Cloudwatch KMS Key | Separate IAM Policy not required
+
+  cwKms:
+    Type: AWS::KMS::Key
+    Condition: CondCreateKmsCwKey
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: KMS Key for Cloudwatch Logs encryption
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub cloudwatch-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - 
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Sid: IAM Key Control
+          - 
+            Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:CreateGrant"
+              - "kms:ListGrants"
+              - "kms:DescribeKey"
+            Resource: "*"
+            Principal:
+              AWS: "*"
+            Condition:
+              StringEquals:
+                    "kms:ViaService": !Sub "logs.${AWS::Region}.amazonaws.com"
+                    "kms:CallerAccount": !Ref AWS::AccountId
+            Sid: Allow Access to service roles
+          - 
+            Sid: Allow use of the key by any CloudWatch Log Group
+            Effect: Allow
+            Action:
+              - kms:Describe*
+              - kms:Encrypt*
+              - kms:Decrypt*
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+            Resource: "*"
+            Principal:
+              Service: !Sub logs.${AWS::Region}.amazonaws.com
+            Condition:
+              ArnLike:
+                "kms:EncryptionContext:aws:logs:arn": !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:* 
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  cwKmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondCreateKmsCwKey
+    Properties:
+      TargetKeyId: !Ref cwKms
+      AliasName: !Sub alias/cloudwatch/${AWS::Region}
+
+  timeStreamKms:
+    Type: AWS::KMS::Key
+    Condition: CondCreateTimeStreamKey
+    Properties:
+      Enabled: true
+      EnableKeyRotation: true
+      Description: KMS Key for TimeStream Database encryption
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub cloudwatch-${AWS::AccountId}-${AWS::Region}
+        Statement:
+          - 
+            Effect: Allow
+            Action: kms:*
+            Resource: "*"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Sid: IAM Key Control   
+      Tags:
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  timeStreamKmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CondCreateTimeStreamKey
+    Properties:
+      TargetKeyId: !Ref timeStreamKms
+      AliasName: !Sub alias/timestream/${AWS::Region}
+
+Outputs:
+
+  Version:
+    Description: Template Version
+    Value: kms-service-keys-0.3
+
+  keyEbs:
+    Description: KMS EBS key ARN
+    Condition: CondCreateKmsEbsKey
+    Value: !GetAtt ebsKms.Arn
+    Export:
+      Name: ebsKeyArn
+
+  keyRds:
+    Description: RDS key ARN
+    Condition: CondCreateKmsRdsKey
+    Value: !GetAtt rdsKms.Arn
+    Export:
+      Name: rdsKeyArn
+  
+  keyEfs:
+    Description: EFS key ARN
+    Condition: CondCreateKmsEfsKey
+    Value: !GetAtt efsKms.Arn
+    Export:
+      Name: efsKeyArn
+  
+  keyFsx:
+    Description: FSx key ARN
+    Condition: CondCreateKmsFsxKey
+    Value: !GetAtt fsxKms.Arn
+    Export:
+      Name: fsxKeyArn
+
+  keyS3:
+    Description: S3 key ARN
+    Condition: CondCreateKmsS3Key
+    Value: !GetAtt s3Kms.Arn
+    Export:
+      Name: s3KeyArn
+
+  keySsm:
+    Description: SSM key ARN
+    Condition: CondCreateKmsSsmKey
+    Value: !GetAtt ssmKms.Arn
+    Export:
+      Name: ssmKeyArn
+  
+  keyEc:
+    Description: Elasticache key ARN
+    Condition: CondCreateKmsEcKey
+    Value: !GetAtt ecKms.Arn
+    Export:
+      Name: elasticacheKeyArn
+  
+  keyEs:
+    Description: Elasticsearch key ARN
+    Condition: CondCreateKmsEsKey
+    Value: !GetAtt esKms.Arn
+    Export:
+      Name: elasticsearchKeyArn
+
+  keyCw:
+    Description: Cloudwatch Logs key ARN
+    Condition: CondCreateKmsCwKey
+    Value: !GetAtt cwKms.Arn
+    Export:
+      Name: cloudwatchKeyArn
+
+  keyTimeStream:
+    Description: Timestream Logs key ARN
+    Condition: CondCreateTimeStreamKey
+    Value: !GetAtt timeStreamKms.Arn
+    Export:
+      Name: timeStreamKeyArn
+
+  keyPolicyS3:
+    Description: S3 KMS Read/Write Policy ARN
+    Condition: CondCreateKmsS3Key
+    Value: !Ref s3KmsPolicy
+    Export:
+      Name: s3KmsPolicyArn
+
+  keyPolicySsm:
+    Description: SSM KMS Read/Write Policy ARN
+    Condition: CondCreateKmsSsmKey
+    Value: !Ref ssmKmsPolicy
+    Export:
+      Name: ssmKmsPolicyArn
+
