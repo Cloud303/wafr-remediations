@@ -4,7 +4,7 @@ This CloudFormation template creates an AWS Budget with email notifications for 
 
 ## Description
 
-This template allows you to set up an AWS Budget with customizable parameters for cost thresholds and notification settings. It helps monitor and manage AWS spending by creating budget alerts.
+This template allows you to set up an AWS Budget with customizable parameters for cost thresholds and notifications. It's designed to help monitor and manage AWS spending across your account.
 
 ## Parameters
 
@@ -17,32 +17,31 @@ This template allows you to set up an AWS Budget with customizable parameters fo
 
 ## Resources Created
 
-- AWS::Budgets::Budget: Creates an AWS Budget resource
+- **AWS::Budgets::Budget**: Creates an AWS Budget resource with specified limits and notifications.
 
 ## Usage
 
-1. Upload the template to CloudFormation
+1. Upload the template to CloudFormation or use it with AWS CLI.
 2. Provide values for the required parameters:
    - Cost/Amount
    - Time Unit of Budget (MONTHLY, QUARTERLY, or ANNUALLY)
    - Budget Threshold for Notification (percentage)
    - Email ID for Notifications
-3. Create the stack
+
+## Notifications
+
+The template sets up email notifications when actual spending exceeds the specified threshold percentage of the budgeted amount.
 
 ## Outputs
 
-- Version: Displays the template version (budgets-0.1)
+- **Version**: Displays the template version (budgets-0.1)
 
 ## Notes
 
-- The budget is set up to include various cost types like credits, discounts, subscriptions, etc.
-- Notifications are sent when actual costs exceed the specified threshold percentage
-- Only email notifications are configured in this template
+- The budget includes various cost types like credits, discounts, subscriptions, support, taxes, and upfront costs.
+- The notification is set for ACTUAL spending compared to the budget.
+- Only email notifications are configured in this template.
 
-## Contributing
+## Customization
 
-Feel free to submit pull requests or create issues for any improvements or bug fixes.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+You can modify the template to add more notification types, change the budget types, or adjust the cost types included in the budget calculation.

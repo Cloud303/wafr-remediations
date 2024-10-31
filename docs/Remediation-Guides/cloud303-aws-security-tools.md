@@ -1,91 +1,97 @@
 ---
 layout: page
-title:  How to deploy AWS Security Tools CloudFormation Template
+title:  Deploying AWS Security Tools CloudFormation Template
 permalink: /cloud303-aws-security-tools/
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  How to deploy AWS Security Tools CloudFormation Template
+#  Deploying AWS Security Tools CloudFormation Template
 
-This guide will walk you through deploying a comprehensive set of AWS security tools and configurations including CloudTrail, AWS Config, GuardDuty, Amazon Inspector, and IAM Access Analyzer.
+This guide will walk you through the process of deploying a comprehensive set of AWS security tools using a CloudFormation template.
 
-## Prerequisites
+## Template Link
 
-- An AWS account with permissions to create the required resources
-- Basic understanding of AWS CloudFormation
+The CloudFormation template can be found here: [AWS Security Tools Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/security-tools/cloud303-aws-security-tools.yml)
 
 ## Deployment Steps
 
-1. **Access the CloudFormation Template**
+1. **Access AWS CloudFormation**
+   - Log in to your AWS Management Console
+   - Navigate to the CloudFormation service
 
-   Download or access the CloudFormation template from the following link:
-   
-   [AWS Security Tools Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/security-tools/cloud303-aws-security-tools.yml)
+2. **Create a New Stack**
+   - Click on "Create stack"
+   - Choose "With new resources (standard)"
 
-2. **Navigate to CloudFormation in AWS Console**
+3. **Specify Template**
+   - Select "Upload a template file"
+   - Click "Choose file" and upload the template from your local machine
+   - Alternatively, you can use the template URL provided above
 
-   Log in to your AWS account and navigate to the CloudFormation service.
+4. **Specify Stack Details**
+   - Enter a stack name (e.g., "AWS-Security-Tools")
+   - Fill in the parameters as described below:
 
-3. **Create a New Stack**
+### Parameters
 
-   Click on "Create stack" and choose "With new resources (standard)".
+#### GuardDuty Settings
+- `pEnableGuardDuty`: Choose whether to enable GuardDuty account-wide (true/false)
+- `pGuardDutyPublishFrequency`: Set the findings delivery frequency
+- `pGuardDutyMalwareProtection`: Decide if you want to enable GuardDuty Malware Protection (true/false)
 
-4. **Specify Template**
+#### Config Settings
+- `pEnableConfig`: Choose to enable Config in the deployed region (true/false/AutoDetect)
+- `pCreateConfigAll`: Decide if you want to create all Config resources (true/false)
+- `pConfigDeliveryFrequency`: Set the configuration snapshot delivery frequency
 
-   Choose "Upload a template file" and select the downloaded template, or use "Amazon S3 URL" and provide the template URL.
+#### CloudTrail Settings
+- `pEnableCloudtrail`: Choose to enable CloudTrail in all regions (true/false)
+- `pLogGroupRetention`: Set the CloudWatch Log Group retention period in days
+- `pHipaaClient`: Enable HIPAA compliance settings if required (true/false)
 
-5. **Specify Stack Details**
+#### Inspector Settings
+- `pEnableInspector`: Choose to enable Inspector notifications (true/false)
+- `pEnableInspectorExport`: Decide if you want to enable Inspector findings export to S3 (true/false)
 
-   Enter a stack name and provide values for the parameters:
+#### IAM Access Analyzer Settings
+- `pEnableAccessAnalyzer`: Choose to enable IAM Access Analyzer (true/false)
 
-   - GuardDuty Settings
-   - Config Settings
-   - CloudTrail Settings
-   - Inspector Settings
-   - IAM Access Analyzer Settings
-   - Other Settings (including security email and environment tag)
+#### Other Settings
+- `pSecurityEmailEndpoint`: Enter an email for security notifications
+- `pEnvironmentTag`: Set the environment tag (production/development)
 
-6. **Configure Stack Options**
+5. **Configure Stack Options**
+   - Add any tags if needed
+   - Configure advanced options if required
 
-   Add any tags, permissions, or advanced options as needed.
+6. **Review**
+   - Review all the details you've entered
+   - Acknowledge that the template might create IAM resources
 
-7. **Review**
+7. **Create Stack**
+   - Click "Create stack" to start the deployment process
 
-   Review your stack details and acknowledge that the stack might create IAM resources.
+8. **Monitor Progress**
+   - Watch the stack creation progress in the "Events" tab
+   - This process may take several minutes to complete
 
-8. **Create Stack**
-
-   Click "Create stack" to begin the deployment process.
-
-9. **Monitor Deployment**
-
-   Watch the stack creation progress in the CloudFormation console. This may take several minutes.
-
-10. **Review Outputs**
-
-    Once the stack creation is complete, go to the "Outputs" tab to view important configuration details and resource information.
+9. **Check Outputs**
+   - Once the stack creation is complete, go to the "Outputs" tab
+   - Here you'll find important information such as:
+     - Status of enabled services (GuardDuty, Inspector, Access Analyzer, Config, CloudTrail)
+     - S3 bucket names for CloudTrail and Config logs
+     - CloudTrail Log Group name
+     - Template version
 
 ## Post-Deployment
 
-- Verify that all selected services are properly configured and running.
-- Test the notification systems to ensure they're working as expected.
-- Review and customize any additional settings as needed for your specific requirements.
+- Review the IAM permissions and S3 bucket policies created by this template
+- Ensure all services are running as expected
+- Set up any additional monitoring or alerting based on the newly deployed security tools
 
-## Troubleshooting
+## Notes
 
-If you encounter any issues during deployment:
-
-- Check the "Events" tab in CloudFormation for error messages.
-- Ensure your AWS account has the necessary permissions to create all resources.
-- Verify that the parameters you provided are correct and compatible.
-
-## Cleanup
-
-To remove all deployed resources:
-
-1. Go to the CloudFormation console.
-2. Select the stack you created.
-3. Click "Delete" and confirm the action.
-
-Note: Deleting the stack will remove all resources created by this template. Ensure you have backups of any important data before proceeding.
+- Some resources are conditionally created based on the parameter values you provided
+- If you enabled HIPAA compliance settings, ensure your AWS account is approved for HIPAA workloads
+- Regularly review and update your security settings as needed

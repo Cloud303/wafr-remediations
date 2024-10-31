@@ -4,11 +4,11 @@ This CloudFormation template deploys a comprehensive set of AWS security tools a
 
 ## Features
 
-- CloudTrail enabled across all regions with encrypted logs
-- AWS Config enabled in a single region 
+- CloudTrail configuration with encrypted logs across all regions
+- AWS Config setup in a single region 
 - Account-wide GuardDuty with optional malware protection
-- Amazon Inspector with findings notifications
-- IAM Access Analyzer
+- Amazon Inspector configuration
+- IAM Access Analyzer setup
 
 ## Parameters
 
@@ -21,12 +21,12 @@ The template accepts the following parameters:
 
 ### Config Settings  
 - `pEnableConfig`: Enable Config in deployed region (true/false/AutoDetect)
-- `pCreateConfigAll`: Create ALL Config resources (true/false)
+- `pCreateConfigAll`: Create all Config resources (true/false)
 - `pConfigDeliveryFrequency`: Configuration snapshot delivery frequency
 
 ### CloudTrail Settings
 - `pEnableCloudtrail`: Enable CloudTrail in all regions (true/false) 
-- `pLogGroupRetention`: CloudWatch Log Group retention in days
+- `pLogGroupRetention`: CloudWatch Log Group retention period in days
 - `pHipaaClient`: Enable HIPAA compliance settings (true/false)
 
 ### Inspector Settings
@@ -42,10 +42,12 @@ The template accepts the following parameters:
 
 ## Resources Created
 
-- S3 buckets for logs and findings
-- KMS keys for encryption
+The template creates the following key resources:
+
+- S3 buckets for CloudTrail and Config logs
+- CloudWatch Log Groups  
 - IAM roles and policies
-- CloudWatch log groups and alarms  
+- KMS keys for encryption
 - SNS topics for notifications
 - GuardDuty detector
 - Config recorder and delivery channel
@@ -54,17 +56,22 @@ The template accepts the following parameters:
 
 ## Outputs
 
-The template provides outputs for the status and configuration of the deployed security tools.
+The template provides outputs for:
+
+- Status of enabled services (GuardDuty, Inspector, Access Analyzer, Config, CloudTrail)
+- S3 bucket names for CloudTrail and Config logs
+- CloudTrail Log Group name
+- Template version
 
 ## Usage
 
 1. Upload the template to CloudFormation
-2. Provide values for the parameters
-3. Create the stack
-4. Review the outputs for configuration details
+2. Provide values for the parameters  
+3. Review and create the stack
+4. Monitor the creation progress and check outputs once complete
 
 ## Notes
 
 - Some resources are conditionally created based on parameter values
-- HIPAA compliance settings are enabled if `pHipaaClient` is set to true
-- Review and customize as needed for your specific requirements
+- HIPAA compliance settings can be enabled with the `pHipaaClient` parameter
+- Review IAM permissions and S3 bucket policies created by this template
