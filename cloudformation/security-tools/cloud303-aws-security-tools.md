@@ -1,6 +1,6 @@
 #  AWS Security Tools CloudFormation Template
 
-This CloudFormation template deploys a comprehensive set of AWS security tools and configurations across your AWS account.
+This CloudFormation template deploys a comprehensive set of AWS security tools and configurations to enhance the security posture of your AWS account.
 
 ## Features
 
@@ -17,7 +17,7 @@ The template accepts the following parameters:
 ### GuardDuty Settings
 - `pEnableGuardDuty`: Enable GuardDuty account-wide (true/false)
 - `pGuardDutyPublishFrequency`: Findings delivery frequency 
-- `pGuardDutyMalwareProtection`: Enable malware protection (true/false)
+- `pGuardDutyMalwareProtection`: Enable GuardDuty Malware Protection (true/false)
 
 ### Config Settings  
 - `pEnableConfig`: Enable Config in deployed region (true/false/AutoDetect)
@@ -26,7 +26,7 @@ The template accepts the following parameters:
 
 ### CloudTrail Settings
 - `pEnableCloudtrail`: Enable CloudTrail in all regions (true/false) 
-- `pLogGroupRetention`: CloudWatch log retention period in days
+- `pLogGroupRetention`: CloudWatch Log Group retention in days
 
 ### Inspector Settings
 - `pEnableInspector`: Enable Inspector notifications (true/false)
@@ -36,36 +36,35 @@ The template accepts the following parameters:
 - `pEnableAccessAnalyzer`: Enable IAM Access Analyzer (true/false)
 
 ### Other Settings
-- `pHipaaClient`: Enable HIPAA compliance settings (true/false)
+- `pHipaaClient`: Enable HIPAA compliance configurations (true/false)
 - `pSecurityEmailEndpoint`: Email for security notifications
 - `pEnvironmentTag`: Environment tag (production/development)
 
 ## Resources Created
 
-The template creates the following key resources:
-
 - S3 buckets for CloudTrail and Config logs
-- CloudTrail trail and associated resources
-- Config recorder and delivery channel 
-- GuardDuty detector
-- SNS topics and CloudWatch event rules for notifications
+- CloudWatch Log Groups  
 - IAM roles and policies
 - KMS keys for encryption
-- Inspector and Access Analyzer configurations
+- SNS topics for notifications
+- CloudWatch Events rules
+- GuardDuty detector
+- Config recorder and delivery channel
+- IAM Access Analyzer
 
 ## Outputs
 
-The template provides outputs for the status and key resources created for each security tool.
+The template provides outputs for the status and configuration of the deployed security tools.
 
 ## Usage
 
 1. Upload the template to CloudFormation
 2. Provide values for the parameters  
 3. Review and create the stack
-4. Monitor the creation progress and check outputs when complete
+4. Monitor the creation progress and check outputs once complete
 
-## Notes
+## Security Considerations
 
-- Some resources are conditionally created based on parameter values
-- HIPAA compliance settings add additional configurations
-- Review IAM permissions and KMS key policies as needed for your environment
+- Ensure proper IAM permissions to create all resources
+- Review and customize security group and network ACL settings as needed
+- Regularly review findings and alerts from the deployed tools
