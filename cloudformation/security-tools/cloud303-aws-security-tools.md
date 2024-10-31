@@ -21,36 +21,36 @@ The template accepts the following parameters:
 
 ### Config Settings  
 - `pEnableConfig`: Enable Config in deployed region (true/false/AutoDetect)
-- `pCreateConfigAll`: Create all Config resources (true/false)
+- `pCreateConfigAll`: Create ALL Config resources (true/false)
 - `pConfigDeliveryFrequency`: Configuration snapshot delivery frequency
 
 ### CloudTrail Settings
 - `pEnableCloudtrail`: Enable CloudTrail in all regions (true/false) 
 - `pLogGroupRetention`: CloudWatch Log Group retention in days
+- `pHipaaClient`: Enable HIPAA compliance settings (true/false)
 
 ### Inspector Settings
 - `pEnableInspector`: Enable Inspector notifications (true/false)
-- `pEnableInspectorExport`: Enable exporting Inspector findings to S3 (true/false)
+- `pEnableInspectorExport`: Enable Inspector findings export to S3 (true/false)
 
 ### IAM Access Analyzer Settings  
 - `pEnableAccessAnalyzer`: Enable IAM Access Analyzer (true/false)
 
 ### Other Settings
-- `pHipaaClient`: Enable HIPAA compliance configurations (true/false)
 - `pSecurityEmailEndpoint`: Email for security notifications
 - `pEnvironmentTag`: Environment tag (production/development)
 
 ## Resources Created
 
-- S3 buckets for CloudTrail and Config logs
-- CloudWatch Log Groups  
-- IAM roles and policies
+- S3 buckets for logs and findings
 - KMS keys for encryption
+- IAM roles and policies
+- CloudWatch log groups and alarms  
 - SNS topics for notifications
-- CloudWatch Events rules
 - GuardDuty detector
 - Config recorder and delivery channel
-- IAM Access Analyzer
+- CloudTrail trail
+- Inspector and Access Analyzer configurations
 
 ## Outputs
 
@@ -59,12 +59,12 @@ The template provides outputs for the status and configuration of the deployed s
 ## Usage
 
 1. Upload the template to CloudFormation
-2. Provide values for the parameters  
-3. Review and create the stack
-4. Monitor the creation progress and check outputs once complete
+2. Provide values for the parameters
+3. Create the stack
+4. Review the outputs for configuration details
 
-## Security Considerations
+## Notes
 
-- Ensure proper IAM permissions to create all resources
-- Review and customize security group and network ACL settings as needed
-- Regularly review findings and alerts from the deployed tools
+- Some resources are conditionally created based on parameter values
+- HIPAA compliance settings are enabled if `pHipaaClient` is set to true
+- Review and customize as needed for your specific requirements

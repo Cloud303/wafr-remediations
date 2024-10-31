@@ -6,6 +6,7 @@ resource: true
 categories: [Remediation Guides]
 ---
 
+#  How to deploy AWS Security Tools CloudFormation Template
 
 This guide will walk you through deploying a comprehensive set of AWS security tools and configurations including CloudTrail, AWS Config, GuardDuty, Amazon Inspector, and IAM Access Analyzer.
 
@@ -16,83 +17,75 @@ This guide will walk you through deploying a comprehensive set of AWS security t
 
 ## Deployment Steps
 
-1. Access the CloudFormation template:
+1. **Access the CloudFormation Template**
+
+   Download or access the CloudFormation template from the following link:
+   
    [AWS Security Tools Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/security-tools/cloud303-aws-security-tools.yml)
 
-2. Navigate to the AWS CloudFormation console in your desired region.
+2. **Navigate to CloudFormation in AWS Console**
 
-3. Click "Create stack" and choose "With new resources (standard)".
+   Log in to your AWS account and navigate to the CloudFormation service.
 
-4. Select "Upload a template file" and upload the downloaded template.
+3. **Create a New Stack**
 
-5. Click "Next" to proceed to the stack details page.
+   Click on "Create stack" and choose "With new resources (standard)".
 
-6. Enter a stack name (e.g., "AWS-Security-Tools").
+4. **Specify Template**
 
-7. Configure the parameters:
+   Choose "Upload a template file" and select the downloaded template, or use "Amazon S3 URL" and provide the template URL.
 
-   ### GuardDuty Settings
-   - `pEnableGuardDuty`: Choose whether to enable GuardDuty (true/false)
-   - `pGuardDutyPublishFrequency`: Set the findings delivery frequency
-   - `pGuardDutyMalwareProtection`: Enable/disable GuardDuty Malware Protection
+5. **Specify Stack Details**
 
-   ### Config Settings
-   - `pEnableConfig`: Choose to enable Config (true/false/AutoDetect)
-   - `pCreateConfigAll`: Decide whether to create all Config resources
-   - `pConfigDeliveryFrequency`: Set the configuration snapshot delivery frequency
+   Enter a stack name and provide values for the parameters:
 
-   ### CloudTrail Settings
-   - `pEnableCloudtrail`: Choose to enable CloudTrail in all regions
-   - `pLogGroupRetention`: Set the CloudWatch Log Group retention period
+   - GuardDuty Settings
+   - Config Settings
+   - CloudTrail Settings
+   - Inspector Settings
+   - IAM Access Analyzer Settings
+   - Other Settings (including security email and environment tag)
 
-   ### Inspector Settings
-   - `pEnableInspector`: Enable/disable Inspector notifications
-   - `pEnableInspectorExport`: Choose to export Inspector findings to S3
+6. **Configure Stack Options**
 
-   ### IAM Access Analyzer Settings
-   - `pEnableAccessAnalyzer`: Enable/disable IAM Access Analyzer
+   Add any tags, permissions, or advanced options as needed.
 
-   ### Other Settings
-   - `pHipaaClient`: Enable HIPAA compliance configurations if required
-   - `pSecurityEmailEndpoint`: Provide an email for security notifications
-   - `pEnvironmentTag`: Set the environment tag (production/development)
+7. **Review**
 
-8. Click "Next" to proceed to the stack options page.
+   Review your stack details and acknowledge that the stack might create IAM resources.
 
-9. Configure any additional stack options if needed, then click "Next".
+8. **Create Stack**
 
-10. Review the stack details and acknowledge that the template might create IAM resources.
+   Click "Create stack" to begin the deployment process.
 
-11. Click "Create stack" to begin the deployment process.
+9. **Monitor Deployment**
 
-12. Monitor the stack creation progress in the CloudFormation console.
+   Watch the stack creation progress in the CloudFormation console. This may take several minutes.
 
-13. Once the stack status shows "CREATE_COMPLETE", navigate to the "Outputs" tab to view important information about the deployed resources.
+10. **Review Outputs**
 
-## Post-Deployment Steps
+    Once the stack creation is complete, go to the "Outputs" tab to view important configuration details and resource information.
 
-1. Verify that all resources have been created successfully by checking the Resources tab in CloudFormation.
+## Post-Deployment
 
-2. Configure any additional settings for the deployed services as needed through their respective AWS console pages.
-
-3. Set up monitoring and alerting for the security findings from GuardDuty, Inspector, and other tools.
-
-4. Regularly review and act on the security recommendations and findings provided by the deployed tools.
-
-5. Ensure that the email provided for security notifications is monitored and that alerts are acted upon promptly.
+- Verify that all selected services are properly configured and running.
+- Test the notification systems to ensure they're working as expected.
+- Review and customize any additional settings as needed for your specific requirements.
 
 ## Troubleshooting
 
-- If the stack creation fails, check the "Events" tab in CloudFormation for error messages.
-- Ensure that your IAM user or role has sufficient permissions to create all the resources defined in the template.
-- If specific services fail to deploy, verify that they are available in your chosen region.
+If you encounter any issues during deployment:
 
-## Security Best Practices
+- Check the "Events" tab in CloudFormation for error messages.
+- Ensure your AWS account has the necessary permissions to create all resources.
+- Verify that the parameters you provided are correct and compatible.
 
-- Regularly update and patch all systems and applications.
-- Use the principle of least privilege when granting IAM permissions.
-- Enable multi-factor authentication (MFA) for all IAM users.
-- Regularly rotate access keys and review IAM policies.
-- Monitor and analyze logs from CloudTrail and other services.
+## Cleanup
 
-By following this guide, you will have deployed a robust set of security tools to enhance the security posture of your AWS environment. Remember to continuously monitor and adjust your security settings as your infrastructure evolves.
+To remove all deployed resources:
+
+1. Go to the CloudFormation console.
+2. Select the stack you created.
+3. Click "Delete" and confirm the action.
+
+Note: Deleting the stack will remove all resources created by this template. Ensure you have backups of any important data before proceeding.

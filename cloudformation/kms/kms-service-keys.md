@@ -1,4 +1,4 @@
-#  KMS Keys CloudFormation Template
+#  AWS KMS Keys CloudFormation Template
 
 This CloudFormation template creates KMS (Key Management Service) keys for encrypting resources across various AWS services.
 
@@ -28,8 +28,8 @@ All parameters are of type String and accept `true` or `false` values.
 
 The template creates the following resources based on the parameter values:
 
-- KMS keys for enabled services
-- KMS key aliases 
+- KMS keys for selected services
+- KMS key aliases  
 - IAM managed policies for S3 and SSM keys
 
 ## Outputs
@@ -43,9 +43,9 @@ The template outputs the following:
 ## Usage
 
 1. Upload the template to CloudFormation
-2. Specify the desired parameter values  
+2. Specify the desired parameter values to create keys for selected services
 3. Create the stack
-4. Use the exported key ARNs and policy ARNs in other templates/applications
+4. Use the exported key and policy ARNs in other templates or applications
 
 ## Notes
 
