@@ -2,6 +2,8 @@
 layout: page
 title: AWS Security Tools Best Practices
 permalink: /aws-security-tools/
+resource: true
+categories: [remediation-guides]
 ---
 
 # Deploying the AWS Security Tools CloudFormation Template

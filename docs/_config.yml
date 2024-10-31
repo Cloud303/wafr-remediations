@@ -29,6 +29,8 @@ url: "https://cloud303.github.io" # the base hostname & protocol for your site, 
 # twitter_username: jekyllrb
 # github_username:  jekyll
 
+category-list: [remediation-guides, sops]
+
 # Build settings
 theme: minima
 plugins:
