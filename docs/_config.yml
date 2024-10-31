@@ -20,14 +20,15 @@
 
 title: Cloud303 WAFR Remediations
 email: tfurlong@cloud303.io
-# description: >- # this means to ignore newlines until "baseurl:"
-#   Write an awesome description for your new site here. You can edit this
-#   line in _config.yml. It will appear in your document head meta (for
-#   Google search results) and in your feed.xml site description.
+description: >- # this means to ignore newlines until "baseurl:"
+  Cloud303's Recommended Remediation Plans and SOPs for the AWS Well-Architected
+  Framework Review
 baseurl: "/wafr-remediations" # the subpath of your site, e.g. /blog
 url: "https://cloud303.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 # twitter_username: jekyllrb
 # github_username:  jekyll
+
+repository: cloud303/wafr-remediations
 
 category-list: [Remediation Guides, SOPs]
 
