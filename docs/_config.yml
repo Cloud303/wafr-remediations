@@ -32,6 +32,8 @@ repository: cloud303/wafr-remediations
 
 category-list: [Remediation Guides, SOPs]
 
+logo: "/assets/images/cloud303-logo.png"
+
 # Build settings
 theme: just-the-docs
 plugins:
