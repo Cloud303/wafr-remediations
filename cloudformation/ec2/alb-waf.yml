@@ -1,0 +1,665 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template has the capability to create either an internet-facing or internal Application Load Balancer with HTTP->HTTPS redirection and optional WAF 
+
+
+Parameters:
+
+  # ALB
+  pAlbName:
+    Type: String
+    Description: Application Load Balancer Name
+  
+  pAlbType:
+    Type: String
+    Description: Internal or Internet-Facing ALB
+    Default: internet-facing
+    AllowedValues:
+      - internal
+      - internet-facing
+
+  pAlbDeletionProtection:
+    Type: String
+    Description: Enable Deletion Protection on ALB
+    Default: true
+    AllowedValues:
+      - true
+      - false
+
+  pAcmCertArn:
+    Type: String
+    Description: ACM Certificate ARN. Required if HTTPS listener is being created
+
+  pHostname01:
+    Type: String
+    Description: Host header to route requests to Target Group
+  
+  pCreateHttpsListener:
+    Type: String
+    Description: Create ALB HTTPS listener and rules
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  
+  # ALB Logging
+  
+  pAlbS3LogBucketLifeCycleDays:
+    Type: Number
+    Description: Days to retain ALB logs in S3
+    MinValue: 1
+    MaxValue: 365
+    Default: 30
+  
+  # Target Group
+  pEc2TgInstance01:
+    Type: String
+    Description: Instance ID of Load Balancer Target
+  
+  pHealthCheckPath:
+    Type: String
+    Description: Path on the instance to use as healthcheck
+    Default: /
+  
+  pEnableTgStickySession:
+    Type: String
+    Description: Enable Target Group Sticky Session
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  pTgStickyDuration:
+    Type: Number
+    Description: Session cookie duration in seconds
+    Default: 86400  # 1 day
+    MinValue: 1
+    MaxValue: 604800 # 7 Days
+
+
+  # WAF
+  pEnableWaf:
+    Type: String
+    Description: Create and integrate Web Application Firewall with the ALB
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+  pOdooAlb:
+    Type: String
+    Description: ALB for Odoo?
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  
+  # DataDog
+  pDdMonitor:
+    Type: String
+    Description: Apply dd-monitor tag to ALB being created for monitoring
+    Default: false
+    AllowedValues:
+      - true
+      - false
+    
+  # Network
+  pVpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID
+  
+  pVpcCidr:
+    Type: String
+    Description: VPC CIDR
+
+  pPublicSubnet01:
+    Type: AWS::EC2::Subnet::Id
+    Description: VPC Public Subnet 01 for internet-facing ALB
+
+  pPublicSubnet02:
+    Type: AWS::EC2::Subnet::Id
+    Description: VPC Public Subnet 02 for internet-facing ALB
+  
+  pPrivateSubnet01:
+    Type: AWS::EC2::Subnet::Id
+    Description: VPC Private Subnet 01 for internal ALB
+
+  pPrivateSubnet02:
+    Type: AWS::EC2::Subnet::Id
+    Description: VPC Private Subnet 02 for internal ALB
+  
+  # Tagging
+  pEnvironmentTag:
+    Type: String
+    Description: Environment for default resource tagging
+    Default: production
+    AllowedValues:
+      - production
+      - staging
+      - sandbox
+      - test
+      - development
+      - qa
+
+Metadata:
+
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      pAlbName:
+        default: ALB Name
+      pAlbType:
+        default: ALB Schema
+      pAlbDeletionProtection:
+        default: ALB Deletion Protection
+      pAcmCertArn:
+        default: ACM Certificate ARN
+      pHostname01:
+        default: Hostname 01
+      pCreateHttpsListener:
+        default: Create ALB HTTPS Listener?
+      pAlbS3LogBucketLifeCycleDays:
+        default: S3 ALB Log Retention
+      pEc2TgInstance01:
+        default: Target EC2 Instance ID
+      pHealthCheckPath:
+        default: TargetGroup Healthcheck Path
+      pEnableTgStickySession:
+        default: Enable TargetGroup Sticky Session
+      pTgStickyDuration:
+        default: Sticky Session Duration
+      pEnableWaf:
+        default: Enable WAF?
+      pOdooAlb:
+        default: Odoo ALB?
+      pDdMonitor:
+        default: Monitor with DataDog?
+      pVpcId:
+        default: VPC ID
+      pVpcCidr:
+        default: VPC CIDR
+      pPublicSubnet01:
+        default: VPC Public Subnet AZ01
+      pPublicSubnet02:
+        default: VPC Public Subnet AZ02
+      pPrivateSubnet01:
+        default: VPC Private Subnet AZ01
+      pPrivateSubnet02:
+        default: VPC Private Subnet AZ02
+      pEnvironmentTag:
+        default: Environment Tag
+
+    ParameterGroups:
+      - Label:
+          default: ALB Settings
+        Parameters:
+          - pAlbName
+          - pAlbType
+          - pAlbDeletionProtection
+          - pCreateHttpsListener
+          - pAcmCertArn
+          - pHostname01
+      - Label:
+          default: ALB Logging Settings
+        Parameters:
+          - pAlbS3LogBucketLifeCycleDays
+      - Label:
+          default: Target Group Settings
+        Parameters:
+          - pEc2TgInstance01
+          - pHealthCheckPath
+          - pEnableTgStickySession
+          - pTgStickyDuration
+      - Label:
+          default: WAF Settings
+        Parameters:
+          - pEnableWaf
+          - pOdooAlb
+      - Label:
+          default: DataDog Settings
+        Parameters:
+          - pDdMonitor
+      - Label:
+          default: Network Settings
+        Parameters:
+            - pVpcId
+            - pVpcCidr
+            - pPublicSubnet01
+            - pPublicSubnet02
+            - pPrivateSubnet01
+            - pPrivateSubnet02
+      - Label:
+          default: Tagging
+        Parameters:
+          - pEnvironmentTag
+
+Mappings:
+
+  AwsRegion:
+    us-east-1:
+      AwsLbAccountID: "127311923021"
+    us-east-2:
+      AwsLbAccountID: "33677994240"
+    us-west-1:
+      AwsLbAccountID: "027434742980"
+    us-west-2:
+      AwsLbAccountID: "797873946194"
+    af-south-1:
+      AwsLbAccountID: "098369216593"
+    ca-central-1:
+      AwsLbAccountID: "985666609251"
+    eu-central-1:
+      AwsLbAccountID: "054676820928"
+    eu-west-1: 
+      AwsLbAccountID: "156460612806"
+    eu-west-2:
+      AwsLbAccountID: "652711504416"
+    eu-south-1:
+      AwsLbAccountID: "635631232127"
+    eu-west-3:
+      AwsLbAccountID: "009996457667"
+    eu-north-1:
+      AwsLbAccountID: "897822967062"
+    ap-east-1:
+      AwsLbAccountID: "754344448648"
+    ap-northeast-1:
+      AwsLbAccountID: "582318560864"
+    ap-northeast-2:
+      AwsLbAccountID: "600734575887"
+    ap-northeast-3:
+      AwsLbAccountID: "383597477331"
+    ap-southeast-1:
+      AwsLbAccountID: "114774131450"
+    ap-southeast-2:
+      AwsLbAccountID: "783225319266"
+    ap-south-1:
+      AwsLbAccountID: "718504428378"
+    me-south-1:
+      AwsLbAccountID: "076674570225"
+    sa-east-1: 
+      AwsLbAccountID: "507241528517"
+    us-gov-west-1:
+      AwsLbAccountID: "048591011584"
+    us-gov-east-1:
+      AwsLbAccountID: "190560391635"
+
+Conditions:
+  CondInternalAlb: !Equals [internal, !Ref pAlbType]
+  CondCreateHttpListenerOnly: !Equals [false, !Ref pCreateHttpsListener]
+  CondCreateHttpsListener: !Equals [true, !Ref pCreateHttpsListener]
+  CondEnableWaf: !Equals [true, !Ref pEnableWaf]
+  CondDdMonitor: !Equals [true, !Ref pDdMonitor]
+  CondOdooAlb: !Equals [true, !Ref pOdooAlb]
+  CondOdooUserWaf: !And [Condition: CondEnableWaf, Condition: CondOdooAlb]
+  
+
+
+Resources:
+
+  # Security Group
+
+  sgAlb:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref pVpcId
+      GroupName: !Sub Sg-Alb-${AWS::StackName}
+      GroupDescription: !Sub ${pAlbName}-access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !If [CondInternalAlb, !Ref pVpcCidr, 0.0.0.0/0 ] 
+          Description: HTTP
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !If [CondInternalAlb, !Ref pVpcCidr, 0.0.0.0/0 ] 
+          Description: HTTPS
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+          Description: all
+      Tags:
+        - Key: Name
+          Value: !Sub Sg-Alb-${AWS::StackName}
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+
+  s3AlbLogs:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub ${pAlbName}-${AWS::Region}-logs
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - 
+            ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:  
+        Rules:
+        - Id: expires-in-60-days
+          Status: Enabled
+          ExpirationInDays: !Ref pAlbS3LogBucketLifeCycleDays
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+
+  s3AlbLogsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref s3AlbLogs
+      PolicyDocument:
+        Statement:
+          - 
+            Action:
+              - s3:PutObject
+            Effect: Allow
+            Resource:
+              - !Sub arn:aws:s3:::${s3AlbLogs}/*
+            Principal:
+              AWS: !FindInMap [AwsRegion, !Ref "AWS::Region", AwsLbAccountID]
+
+  alb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Ref pAlbName
+      LoadBalancerAttributes: 
+        - Key: access_logs.s3.enabled
+          Value: true
+        - Key: access_logs.s3.bucket
+          Value: !Ref s3AlbLogs
+        - Key: access_logs.s3.prefix
+          Value: !Ref pAlbName
+        - Key: deletion_protection.enabled
+          Value: !Ref pAlbDeletionProtection
+      Scheme: !Ref pAlbType
+      SecurityGroups:
+        - !Ref sgAlb
+      Subnets:
+        - !If [CondInternalAlb, !Ref pPrivateSubnet01, !Ref pPublicSubnet01 ]
+        - !If [CondInternalAlb, !Ref pPrivateSubnet02, !Ref pPublicSubnet02 ]
+      Tags:
+        - Key: Name
+          Value: !Ref pAlbName
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: dd-monitor
+          Value: !If [CondDdMonitor, true, ""]
+
+  albListenerHttp:
+    Condition: CondCreateHttpListenerOnly
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref alb
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: text/plain
+            StatusCode: 503
+            MessageBody: You have reached an invalid destination!
+  
+  albListenerRedirectHttp:
+    Condition: CondCreateHttpsListener
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref alb
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            Port: 443
+            StatusCode: HTTP_301
+      
+  albListenerHttps:
+    Condition: CondCreateHttpsListener
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref alb
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref pAcmCertArn
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: text/plain
+            StatusCode: 503
+            MessageBody: You have reached an invalid destination!
+      
+  # HTTP
+  albListenerRuleHttp01:
+    Condition: CondCreateHttpListenerOnly
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Priority: 100
+      ListenerArn: !Ref albListenerHttp
+      Actions:
+        - TargetGroupArn: !Ref targetGroupHttp
+          Type: forward
+      Conditions:
+        - Field: host-header
+          Values:
+            - !Ref pHostname01
+  
+  # HTTPS
+  albListenerRuleHttps01:
+    Condition: CondCreateHttpsListener
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Priority: 100
+      ListenerArn: !Ref albListenerHttps
+      Actions:
+        - TargetGroupArn: !Ref targetGroupHttp
+          Type: forward
+      Conditions:
+        - Field: host-header
+          Values:
+            - !Ref pHostname01
+
+  targetGroupHttp:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${pAlbName}-TG-HTTP
+      Port: 80
+      Protocol: HTTP
+      Matcher:
+        HttpCode: 200-302
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: !Ref pHealthCheckPath
+      HealthCheckPort: traffic-port
+      HealthCheckProtocol: HTTP
+      VpcId: !Ref pVpcId
+      Targets:
+        - Id: !Ref pEc2TgInstance01
+          Port: 80
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: !Ref pEnableTgStickySession
+        - Key: stickiness.lb_cookie.duration_seconds
+          Value: !Ref pTgStickyDuration
+        - Key: stickiness.type
+          Value: lb_cookie
+        - Key: deregistration_delay.timeout_seconds
+          Value: 180
+      Tags:
+        - Key: Name
+          Value: !Sub ${pAlbName}-TG-HTTP
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+  
+
+  #
+  # WAF with XSS and SQL Injection Rules
+  #
+
+  wafAlbAssociation01:
+    Condition: CondEnableWaf
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties: 
+      ResourceArn: !Ref alb
+      WebACLArn: !GetAtt waf01.Arn
+
+  waf01:
+    Condition: CondEnableWaf
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub ${pAlbName}-${AWS::Region}-WAF
+      Description: !Sub ${pAlbName}-${AWS::Region}-WAF
+      Scope: REGIONAL
+      VisibilityConfig: 
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: AlbWaf
+      DefaultAction:
+        Allow: {}
+      Rules:
+        - Name: !Sub ${pAlbName}-${AWS::Region}-SQLInj-Rule
+          Priority: 10
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: BlockSQLInjections
+          Statement:
+            OrStatement:
+              Statements:
+                - SqliMatchStatement:
+                    FieldToMatch:
+                      QueryString: {}
+                    TextTransformations:
+                      - Priority: 1
+                        Type: URL_DECODE
+                      - Priority: 2
+                        Type: HTML_ENTITY_DECODE
+                - SqliMatchStatement:
+                    FieldToMatch:
+                      Body: {
+                        OversizeHandling: CONTINUE
+                      }
+                    TextTransformations:
+                      - Priority: 1
+                        Type: URL_DECODE
+                      - Priority: 2
+                        Type: HTML_ENTITY_DECODE
+                - SqliMatchStatement:
+                    FieldToMatch:
+                      UriPath: {}
+                    TextTransformations:
+                      - Priority: 1
+                        Type: URL_DECODE
+                      - Priority: 2
+                        Type: HTML_ENTITY_DECODE
+                - SqliMatchStatement:
+                    FieldToMatch:
+                      SingleHeader: {Name: "Authorization"}
+                    TextTransformations:
+                      - Priority: 1
+                        Type: URL_DECODE
+                      - Priority: 2
+                        Type: HTML_ENTITY_DECODE
+                - SqliMatchStatement:
+                    FieldToMatch:
+                      SingleHeader: {Name: "Cookie"}
+                    TextTransformations:
+                      - Priority: 1
+                        Type: URL_DECODE
+                      - Priority: 2
+                        Type: HTML_ENTITY_DECODE
+        - Name: !Sub ${pAlbName}-${AWS::Region}-Xss-Rule
+          Priority: 20
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: BlockXSS
+          Statement:
+            OrStatement:
+              Statements:
+                - XssMatchStatement:
+                    FieldToMatch:
+                      QueryString: {}
+                    TextTransformations:
+                      - Priority: 1
+                        Type: URL_DECODE
+                      - Priority: 2
+                        Type: HTML_ENTITY_DECODE
+                - XssMatchStatement:
+                    FieldToMatch:
+                      Body: {
+                        OversizeHandling: CONTINUE
+                      }
+                    TextTransformations:
+                      - Priority: 1
+                        Type: URL_DECODE
+                      - Priority: 2
+                        Type: HTML_ENTITY_DECODE
+                - XssMatchStatement:
+                    FieldToMatch:
+                      UriPath: {}
+                    TextTransformations:
+                      - Priority: 1
+                        Type: URL_DECODE
+                      - Priority: 2
+                        Type: HTML_ENTITY_DECODE
+                - XssMatchStatement:
+                    FieldToMatch:
+                      SingleHeader: {Name: "Cookie"}
+                    TextTransformations:
+                      - Priority: 1
+                        Type: URL_DECODE
+                      - Priority: 2
+                        Type: HTML_ENTITY_DECODE
+        - !If
+          - CondOdooUserWaf
+          - Name: !Sub ${pAlbName}-${AWS::Region}-OdooCreateUser-Rule
+            Priority: 0
+            Action:
+              Allow: {}
+            VisibilityConfig:
+              SampledRequestsEnabled: true
+              CloudWatchMetricsEnabled: true
+              MetricName: AllowOdooCreateUser
+            Statement:
+              ByteMatchStatement:
+                FieldToMatch:
+                  UriPath: {}
+                PositionalConstraint: CONTAINS
+                SearchString: /web/dataset/call_kw/res.users
+                TextTransformations:
+                  - Type: NONE
+                    Priority: 0
+          - !Ref "AWS::NoValue"
+
+
+
+
+
+Outputs:
+
+  ALBdnsName:
+    Value: !GetAtt alb.DNSName
+    Description: ALB DNS Name
+
+  Version:
+    Description: Template Version
+    Value: alb-waf-0.4

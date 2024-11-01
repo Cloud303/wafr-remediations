@@ -1,0 +1,1998 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template creates a VPC spanning across 2 AZs with public, private, and private data subnets along with a NAT Gateway in each AZ and one Internet-Gateway. Also creates an S3 endpoint
+
+Parameters:
+
+  pNumberOfAzs:
+    Type: Number
+    Description: How many AZs would you like to deploy?
+    Default: 2
+    AllowedValues:
+      - 1
+      - 2
+      - 3
+      - 4
+  pAz1:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: Availability Zone 1. Don't leave it blank.
+    AllowedPattern : .+
+
+  pAz2:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: Availability Zone 2. Don't leave it blank, even if you are only deploying in a single AZ.
+    AllowedPattern : .+
+
+  pAz3:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: Availability Zone 3. Don't leave it blank, even if you are only deploying in a single AZ.
+    AllowedPattern : .+
+
+  pAz4:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: Availability Zone 4. Don't leave it blank, even if you are only deploying in a single AZ.
+    AllowedPattern : .+
+
+  pSpecifyManualCidrs:
+    Type: String
+    Description: Choosing false will automatically set the CIDRs incrementally. Choosing true will allow you to choose your own CIDRs below.
+    Default: false 
+    AllowedValues: 
+      - false
+      - true 
+
+  pVpcCidrPrefix:
+    Type: String
+    Description: Assumes /16 and sets public, private, and data subnet CIDRs incrementally. If specifying your own CIDRs, please enter the first two octets of your specified CIDR. 
+    Default: "10.10"
+    
+  pCreatePrivateSubnets:
+    Type: String
+    Description: Should private subnets be created?
+    Default: True 
+    AllowedValues:
+      - True
+      - False
+  
+  pCreateDataSubnets:
+    Type: String
+    Description: Should data subnets be created?
+    Default: True 
+    AllowedValues:
+      - True
+      - False
+
+  pPublicSubnet1octet:
+    Type: String
+    Description: Public Subnet 1 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+  pPublicSubnet2octet:
+    Type: String
+    Description: Public Subnet 2 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+  pPublicSubnet3octet:
+    Type: String
+    Description: Public Subnet 3 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+  pPublicSubnet4octet:
+    Type: String
+    Description: Public Subnet 4 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+  pPrivateSubnet1octet:
+    Type: String
+    Description: Private Subnet 1 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+  pPrivateSubnet2octet:
+    Type: String
+    Description: Private Subnet 2 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+
+  pPrivateSubnet3octet:
+    Type: String
+    Description: Private Subnet 3 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+  pPrivateSubnet4octet:
+    Type: String
+    Description: Private Subnet 4 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+  pDataSubnet1octet:
+    Type: String
+    Description: Data Subnet 1 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+  pDataSubnet2octet:
+    Type: String
+    Description: Data Subnet 2 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+
+  pDataSubnet3octet:
+    Type: String
+    Description: Data Subnet 3 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+  pDataSubnet4octet:
+    Type: String
+    Description: Data Subnet 4 (_._.XX.0/24). First 2 octets taken from VPC CIDR Prefix above. Leave blank if not specifying manual CIDRs.
+
+  pCustomDomain:
+    Type: String
+    Description: Custom Internal Domain for DHCP. AmazonProvidedDNS will be used as standby.
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  
+  pDhcpInternalDomain:
+    Type: String
+    Description: Custom Internal Domain Name. Specify if Custom Domain parameter is set to true.
+    Default: ""
+    
+  pDc01Ip:
+    Type: String
+    Description: Domain Controller Private IP for DHCP Option Set
+    Default: ""
+  
+  pDc02Ip:
+    Type: String
+    Description: Domain Controller Private IP for DHCP Option Set
+    Default: ""
+
+  pDc03Ip:
+    Type: String
+    Description: Domain Controller Private IP for DHCP Option Set
+    Default: ""
+
+  pFlowlogRetention:
+    Type: Number
+    Description: Days VPC Flowlogs are retained in CloudWatch.
+    Default: 7
+
+  pS3VpcEndpoint:
+    Type: String
+    Description: Enable VPC Endpoint S3
+    Default: true
+    AllowedValues:
+      - true
+      - false
+
+  pEcrEndpoint:
+    Type: String
+    Description: Enable VPC Endpoint ECR
+    Default: true
+    AllowedValues:
+      - true
+      - false
+      
+  pEnvironmentTag:
+    Type: String
+    Description: Environment type for default resource tagging
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - qa
+      - dr
+      - sandbox
+      - production
+      - central
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      pNumberOfAzs:
+        default: Number Of AZs
+      pCreatePrivateSubnets:
+        default: Create Private Subnets
+      pCreateDataSubnets:
+        default: Create Data Subnets
+      pAz1:
+        default: Availability Zone 1
+      pAz2:
+        default: Availability Zone 2
+      pAz3:
+        default: Availability Zone 3
+      pAz4:
+        default: Availability Zone 4
+      pVpcCidrPrefix:
+        default: VPC CIDR Prefix
+      pSpecifyManualCidrs:
+        default: Specify Manual CIDRs?
+      pPublicSubnet1octet:
+        default: 3rd Octet of Public Subnet 1
+      pPublicSubnet2octet:
+        default: 3rd Octet of Public Subnet 2
+      pPublicSubnet3octet:
+        default: 3rd Octet of Public Subnet 3
+      pPublicSubnet4octet:
+        default: 3rd Octet of Public Subnet 4
+      pPrivateSubnet1octet:
+        default: 3rd Octet of Private Subnet 1
+      pPrivateSubnet2octet:
+        default: 3rd Octet of Private Subnet 2
+      pPrivateSubnet3octet:
+        default: 3rd Octet of Private Subnet 3
+      pPrivateSubnet4octet:
+        default: 3rd Octet of Private Subnet 4
+      pDataSubnet1octet:
+        default: 3rd Octet of Data Subnet 1
+      pDataSubnet2octet:
+        default: 3rd Octet of Data Subnet 2
+      pDataSubnet3octet:
+        default: 3rd Octet of Data Subnet 3
+      pDataSubnet4octet:
+        default: 3rd Octet of Data Subnet 4
+      pCustomDomain:
+        default: Use Custom DNS?
+      pDhcpInternalDomain:
+        default: Custom Domain Name
+      pDc01Ip:
+        default: Domain Controller 1 Private IP
+      pDc02Ip:
+        default: Domain Controller 2 Private IP
+      pDc03Ip:
+        default: Domain Controller 3 Private IP
+      pFlowlogRetention:
+        default: Flowlog Retention
+      pS3VpcEndpoint:
+        default: S3 Vpc Endpoint
+      pEcrEndpoint:
+        default: ECR Vpc Endpoint
+      pEnvironmentTag:
+        default: Environment Tag
+    
+    ParameterGroups:
+      - Label:
+          default: VPC Structural Settings
+        Parameters:
+            - pNumberOfAzs
+            - pAz1
+            - pAz2
+            - pAz3
+            - pAz4
+            - pSpecifyManualCidrs
+            - pVpcCidrPrefix
+            - pCreatePrivateSubnets
+            - pCreateDataSubnets
+      - Label:
+          default: Manual CIDR Settings. Only specify the 3rd Octet and not the entire CIDR.
+        Parameters:
+            - pPublicSubnet1octet
+            - pPublicSubnet2octet
+            - pPublicSubnet3octet
+            - pPublicSubnet4octet
+            - pPrivateSubnet1octet
+            - pPrivateSubnet2octet
+            - pPrivateSubnet3octet
+            - pPrivateSubnet4octet
+            - pDataSubnet1octet
+            - pDataSubnet2octet
+            - pDataSubnet3octet
+            - pDataSubnet4octet
+      - Label:
+          default: VPC DNS Settings
+        Parameters:
+            - pCustomDomain
+            - pDhcpInternalDomain
+            - pDc01Ip
+            - pDc02Ip
+            - pDc03Ip
+      - Label:
+          default: Flowlog Settings
+        Parameters:
+          - pFlowlogRetention
+      - Label:
+          default: VPC Endpoint Settings
+        Parameters:
+          - pS3VpcEndpoint
+          - pEcrEndpoint
+      - Label:
+          default: Tagging
+        Parameters:
+          - pEnvironmentTag
+
+Conditions:
+
+  CondCustomDomain: !Equals [true, !Ref pCustomDomain]
+  CondSecondDc: !And [!Not [!Equals ["", !Ref pDc02Ip]], !Equals [true, !Ref pCustomDomain]]
+  CondThirdDc: !And [!Not [!Equals ["", !Ref pDc03Ip]], !Equals [true, !Ref pCustomDomain]]
+  CondTwoAz: !Or [!Equals [2, !Ref pNumberOfAzs], !Equals [3, !Ref pNumberOfAzs], !Equals [4, !Ref pNumberOfAzs]]
+  CondThreeAz: !Or [ !Equals [3, !Ref pNumberOfAzs], !Equals [4, !Ref pNumberOfAzs]]
+  CondFourAz: !Equals [4, !Ref pNumberOfAzs]
+
+  CondCreatePrivateSubnets: !Equals [True, !Ref pCreatePrivateSubnets]
+  CondCreateDataSubnets: !Equals [True, !Ref pCreateDataSubnets]
+  CondCreate2PrivateSubnets: !And [!Condition CondTwoAz, !Condition CondCreatePrivateSubnets]
+  CondCreate3PrivateSubnets: !And [!Condition CondThreeAz, !Condition CondCreatePrivateSubnets]
+  CondCreate4PrivateSubnets: !And [!Condition CondFourAz, !Condition CondCreatePrivateSubnets]
+
+  CondCreate2DataSubnets: !And [!Condition CondTwoAz, !Condition CondCreateDataSubnets]
+  CondCreate3DataSubnets: !And [!Condition CondThreeAz, !Condition CondCreateDataSubnets]
+  CondCreate4DataSubnets: !And [!Condition CondFourAz, !Condition CondCreateDataSubnets]
+
+  CondSpecifyCustomCIDRs: !Equals [True, !Ref pSpecifyManualCidrs]
+  CondCreateS3VpcEndpoint: !Equals [True, !Ref pS3VpcEndpoint]
+  CondCreateEcrVpcEndpoint: !Equals [True, !Ref pEcrEndpoint]
+
+Resources:
+
+  # VPC
+
+  vpc01:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Sub ${pVpcCidrPrefix}.0.0/16 
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+  
+
+  # VPC Flowlogs
+
+  iamFlowlogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${AWS::Region}-flowlog-role
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - vpc-flow-logs.amazonaws.com
+          Action:
+          - sts:AssumeRole
+        Version: 2012-10-17 
+      Path: /
+      Policies:
+      - PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-flowlog-policy
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            - logs:DescribeLogGroups
+            - logs:DescribeLogStreams
+            Resource:
+            - arn:aws:logs:*:*:*
+          Version: 2012-10-17
+  
+  iamFlowlogsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: !Ref pFlowlogRetention
+      LogGroupName: !Sub ${AWS::StackName}-${AWS::Region}-FlowLogGroup
+  
+  vpcFlowlogs:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      LogGroupName: !Ref iamFlowlogsLogGroup
+      TrafficType: ALL
+      ResourceType: VPC
+      ResourceId: !Ref vpc01
+      DeliverLogsPermissionArn : !GetAtt iamFlowlogRole.Arn
+      
+
+  # Internet Gateway
+
+  igw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-internet-gateway
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  igwAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref igw
+      VpcId: !Ref vpc01
+      
+  
+  # DHCP OptionSet
+
+  dhcpOptionSet:
+    Type: AWS::EC2::DHCPOptions
+    Properties:
+      DomainName: !If [CondCustomDomain, !Ref pDhcpInternalDomain, ec2.internal]
+      DomainNameServers:
+        - !Join [ ",", [!If [CondCustomDomain, !Ref pDc01Ip, !Ref "AWS::NoValue"], !If [CondSecondDc, !Ref pDc02Ip, !Ref "AWS::NoValue"], !If [CondThirdDc, !Ref pDc03Ip, !Ref "AWS::NoValue"], "AmazonProvidedDNS"] ]
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-dhcp-options01   
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  dhcpAssociation:
+    Type: AWS::EC2::VPCDHCPOptionsAssociation
+    Properties:
+      DhcpOptionsId: !Ref dhcpOptionSet
+      VpcId: !Ref vpc01
+  
+  
+  # VPC Endpoints
+
+  s3VpcEndpoint:
+    Condition: CondCreateS3VpcEndpoint
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      RouteTableIds:
+        - !Ref routeTablePubSubnetAz01
+        - !If [CondTwoAz, !Ref routeTablePubSubnetAz02, !Ref "AWS::NoValue"]
+        - !If [CondThreeAz, !Ref routeTablePubSubnetAz03, !Ref "AWS::NoValue"]
+        - !If [CondFourAz, !Ref routeTablePubSubnetAz04, !Ref "AWS::NoValue"]
+        - !If [CondCreatePrivateSubnets, !Ref routeTablePrivSubnetAz01, !Ref "AWS::NoValue"]
+        - !If [CondCreate2PrivateSubnets, !Ref routeTablePrivSubnetAz02, !Ref "AWS::NoValue"]
+        - !If [CondCreate3PrivateSubnets, !Ref routeTablePrivSubnetAz03, !Ref "AWS::NoValue"]
+        - !If [CondCreate4PrivateSubnets, !Ref routeTablePrivSubnetAz04, !Ref "AWS::NoValue"]
+        - !If [CondCreateDataSubnets, !Ref routeTablePrivDataSubnetAz01, !Ref "AWS::NoValue"]
+        - !If [CondCreate2DataSubnets, !Ref routeTablePrivDataSubnetAz02, !Ref "AWS::NoValue"]
+        - !If [CondCreate3DataSubnets, !Ref routeTablePrivDataSubnetAz03, !Ref "AWS::NoValue"]
+        - !If [CondCreate4DataSubnets, !Ref routeTablePrivDataSubnetAz04, !Ref "AWS::NoValue"]
+
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3  
+      VpcId: !Ref vpc01
+  
+  ecrEndpointSecurityGroup:
+    Condition: CondCreateEcrVpcEndpoint
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "ECR Endpoint Security Group"
+      VpcId: !Ref vpc01
+
+  ecrEndpointInboundRule:
+    Condition: CondCreateEcrVpcEndpoint
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      GroupId: !Ref ecrEndpointSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: !Sub ${pVpcCidrPrefix}.0.0/16
+
+  ecrDkrVpcEndpoint:
+    Condition: CondCreateEcrVpcEndpoint
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      VpcEndpointType: Interface
+      SubnetIds:
+        - !Ref pubSubnetAz01
+        - !If [CondTwoAz, !Ref pubSubnetAz02, !Ref "AWS::NoValue"]
+      SecurityGroupIds:
+        - !Ref ecrEndpointSecurityGroup
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ecr.dkr
+      VpcId: !Ref vpc01
+
+  ecrApiVpcEndpoint:
+    Condition: CondCreateEcrVpcEndpoint
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      VpcEndpointType: Interface
+      SubnetIds:
+        - !Ref pubSubnetAz01
+        - !If [CondTwoAz, !Ref pubSubnetAz02, !Ref "AWS::NoValue"]
+      SecurityGroupIds:
+        - !Ref ecrEndpointSecurityGroup
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ecr.api
+      VpcId: !Ref vpc01
+  
+  # Public Subnet - Availability Zone 01
+
+  pubSubnetAz01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz1
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pPublicSubnet1octet}.0/24', !Sub '${pVpcCidrPrefix}.10.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz1}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTablePubSubnetAz01:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz1}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTableAssocPubSubnetAz01:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref pubSubnetAz01
+      RouteTableId: !Ref routeTablePubSubnetAz01
+  
+  routeTablePubSubnetAz01Route01:
+    DependsOn: igwAttachment
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref igw
+      RouteTableId: !Ref routeTablePubSubnetAz01
+
+  naclPubSubnetAz01:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz1}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+  
+  naclAssocPubSubnetAz01:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref naclPubSubnetAz01
+      SubnetId: !Ref pubSubnetAz01
+
+  naclPubSubnetAz01Egress01:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPubSubnetAz01
+
+  naclPubSubnetAz01Ingress01:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPubSubnetAz01
+      
+  
+  # Public Subnet - Availability Zone 02
+
+  pubSubnetAz02:
+    Condition: CondTwoAz
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz2
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pPublicSubnet2octet}.0/24', !Sub '${pVpcCidrPrefix}.11.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz2}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTablePubSubnetAz02:
+    Condition: CondTwoAz
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz2}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTableAssocPubSubnetAz02:
+    Condition: CondTwoAz
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref pubSubnetAz02
+      RouteTableId: !Ref routeTablePubSubnetAz02
+  
+  routeTablePubSubnetAz02Route01:
+    DependsOn: igwAttachment
+    Condition: CondTwoAz
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref igw
+      RouteTableId: !Ref routeTablePubSubnetAz02
+
+  naclPubSubnetAz02:
+    Condition: CondTwoAz
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz2}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+  
+  naclAssocPubSubnetAz02:
+    Condition: CondTwoAz
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref naclPubSubnetAz02
+      SubnetId: !Ref pubSubnetAz02
+
+  naclPubSubnetAz02Ingress01:
+    Condition: CondTwoAz
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPubSubnetAz02
+      
+  naclPubSubnetAz02Egress01:
+    Condition: CondTwoAz
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPubSubnetAz02
+
+
+# Public Subnet - Availability Zone 03
+
+  pubSubnetAz03:
+    Condition: CondThreeAz
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz3
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pPublicSubnet3octet}.0/24', !Sub '${pVpcCidrPrefix}.12.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz3}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTablePubSubnetAz03:
+    Condition: CondThreeAz
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz3}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTableAssocPubSubnetAz03:
+    Condition: CondThreeAz
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref pubSubnetAz03
+      RouteTableId: !Ref routeTablePubSubnetAz03
+  
+  routeTablePubSubnetAz03Route01:
+    DependsOn: igwAttachment
+    Condition: CondThreeAz
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref igw
+      RouteTableId: !Ref routeTablePubSubnetAz03
+
+  naclPubSubnetAz03:
+    Condition: CondThreeAz
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz3}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+  
+  naclAssocPubSubnetAz03:
+    Condition: CondThreeAz
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref naclPubSubnetAz03
+      SubnetId: !Ref pubSubnetAz03
+
+  naclPubSubnetAz03Ingress01:
+    Condition: CondThreeAz
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPubSubnetAz03
+      
+  naclPubSubnetAz03Egress01:
+    Condition: CondThreeAz
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPubSubnetAz03
+
+# Public Subnet - Availability Zone 04
+
+  pubSubnetAz04:
+    Condition: CondFourAz
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz4
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pPublicSubnet4octet}.0/24', !Sub '${pVpcCidrPrefix}.13.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz4}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTablePubSubnetAz04:
+    Condition: CondFourAz
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz4}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTableAssocPubSubnetAz04:
+    Condition: CondFourAz
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref pubSubnetAz04
+      RouteTableId: !Ref routeTablePubSubnetAz04
+  
+  routeTablePubSubnetAz04Route01:
+    DependsOn: igwAttachment
+    Condition: CondFourAz
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref igw
+      RouteTableId: !Ref routeTablePubSubnetAz04
+
+  naclPubSubnetAz04:
+    Condition: CondFourAz
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz4}-public-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+  
+  naclAssocPubSubnetAz04:
+    Condition: CondFourAz
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref naclPubSubnetAz04
+      SubnetId: !Ref pubSubnetAz04
+
+  naclPubSubnetAz04Ingress01:
+    Condition: CondFourAz
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPubSubnetAz04
+      
+  naclPubSubnetAz04Egress01:
+    Condition: CondFourAz
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPubSubnetAz04
+
+  # Private Subnet- Availability Zone 01
+
+  privSubnetAz01:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz1
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pPrivateSubnet1octet}.0/24', !Sub '${pVpcCidrPrefix}.20.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz1}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  natEip01:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  
+  natGw01:
+    Condition: CondCreatePrivateSubnets
+    DependsOn: igwAttachment
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref pubSubnetAz01
+      AllocationId: !GetAtt natEip01.AllocationId
+
+  routeTablePrivSubnetAz01:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz1}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTableAssocPrivSubnetAz01:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref privSubnetAz01
+      RouteTableId: !Ref routeTablePrivSubnetAz01
+  
+  routeTablePrivSubnetAz01Route01:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref natGw01
+      RouteTableId: !Ref routeTablePrivSubnetAz01
+  
+  naclPrivSubnetAz01:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        -  Key: Name
+           Value: !Sub ${AWS::StackName}-${pAz1}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  naclAssocPrivSubnetAz01:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref privSubnetAz01
+      NetworkAclId: !Ref naclPrivSubnetAz01
+
+  naclPrivSubnetAz01Egress01:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivSubnetAz01
+      
+  naclPrivSubnetAz01Ingress01:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: !Sub ${pVpcCidrPrefix}.0.0/16 
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivSubnetAz01
+      
+  naclPrivSubnetAz01Ingress02:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 17
+      PortRange:
+        From: 123
+        To: 123
+      RuleAction: allow
+      RuleNumber: 110
+      NetworkAclId: !Ref naclPrivSubnetAz01   
+
+  naclPrivSubnetAz01Ingress03:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 6
+      PortRange:
+        From: 32768
+        To: 65535
+      RuleAction: allow
+      RuleNumber: 120
+      NetworkAclId: !Ref naclPrivSubnetAz01
+
+  naclPrivSubnetAz01Ingress04:
+    Condition: CondCreatePrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 17
+      PortRange:
+        From: 32768
+        To: 65535
+      RuleAction: allow
+      RuleNumber: 130
+      NetworkAclId: !Ref naclPrivSubnetAz01
+
+  # Private Subnet- Availability Zone 02
+
+  privSubnetAz02:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz2
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pPrivateSubnet2octet}.0/24', !Sub '${pVpcCidrPrefix}.21.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz2}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  natEip02:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  natGw02:
+    Condition: CondCreate2PrivateSubnets
+    DependsOn: igwAttachment
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref pubSubnetAz02
+      AllocationId: !GetAtt natEip02.AllocationId
+
+  routeTablePrivSubnetAz02:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz2}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+
+
+  routeTableAssocPrivSubnetAz02:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref privSubnetAz02
+      RouteTableId: !Ref routeTablePrivSubnetAz02
+
+  routeTablePrivSubnetAz02Route01:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref natGw02
+      RouteTableId: !Ref routeTablePrivSubnetAz02
+  
+  naclPrivSubnetAz02:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        -  Key: Name
+           Value: !Sub ${AWS::StackName}-${pAz2}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  naclAssocPrivSubnetAz02:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref privSubnetAz02
+      NetworkAclId: !Ref naclPrivSubnetAz02
+      
+  naclPrivSubnetAz02Egress01:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivSubnetAz02
+      
+  naclPrivSubnetAz02Ingress01:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: !Sub ${pVpcCidrPrefix}.0.0/16 
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivSubnetAz02
+      
+  naclPrivSubnetAz02Ingress02:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 17
+      PortRange:
+        From: 123
+        To: 123
+      RuleAction: allow
+      RuleNumber: 110
+      NetworkAclId: !Ref naclPrivSubnetAz02
+
+  naclPrivSubnetAz02Ingress03:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 6
+      PortRange:
+        From: 32768
+        To: 65535
+      RuleAction: allow
+      RuleNumber: 120
+      NetworkAclId: !Ref naclPrivSubnetAz02
+
+  naclPrivSubnetAz02Ingress04:
+    Condition: CondCreate2PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 17
+      PortRange:
+        From: 32768
+        To: 65535
+      RuleAction: allow
+      RuleNumber: 130
+      NetworkAclId: !Ref naclPrivSubnetAz02
+
+# Private Subnet- Availability Zone 03
+
+  privSubnetAz03:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz3
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pPrivateSubnet3octet}.0/24', !Sub '${pVpcCidrPrefix}.22.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz3}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  natEip03:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  natGw03:
+    Condition: CondCreate3PrivateSubnets
+    DependsOn: igwAttachment
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref pubSubnetAz03
+      AllocationId: !GetAtt natEip03.AllocationId
+
+  routeTablePrivSubnetAz03:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz3}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+
+  routeTableAssocPrivSubnetAz03:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref privSubnetAz03
+      RouteTableId: !Ref routeTablePrivSubnetAz03
+
+  routeTablePrivSubnetAz03Route01:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref natGw03
+      RouteTableId: !Ref routeTablePrivSubnetAz03
+  
+  naclPrivSubnetAz03:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        -  Key: Name
+           Value: !Sub ${AWS::StackName}-${pAz3}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  naclAssocPrivSubnetAz03:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref privSubnetAz03
+      NetworkAclId: !Ref naclPrivSubnetAz03
+      
+  naclPrivSubnetAz03Egress01:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivSubnetAz03
+      
+  naclPrivSubnetAz03Ingress01:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: !Sub ${pVpcCidrPrefix}.0.0/16 
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivSubnetAz03
+      
+  naclPrivSubnetAz03Ingress02:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 17
+      PortRange:
+        From: 123
+        To: 123
+      RuleAction: allow
+      RuleNumber: 110
+      NetworkAclId: !Ref naclPrivSubnetAz03
+
+  naclPrivSubnetAz03Ingress03:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 6
+      PortRange:
+        From: 32768
+        To: 65535
+      RuleAction: allow
+      RuleNumber: 120
+      NetworkAclId: !Ref naclPrivSubnetAz03
+
+  naclPrivSubnetAz03Ingress04:
+    Condition: CondCreate3PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 17
+      PortRange:
+        From: 32768
+        To: 65535
+      RuleAction: allow
+      RuleNumber: 130
+      NetworkAclId: !Ref naclPrivSubnetAz03
+
+# Private Subnet- Availability Zone 04
+
+  privSubnetAz04:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz4
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pPrivateSubnet4octet}.0/24', !Sub '${pVpcCidrPrefix}.24.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz4}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  natEip04:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  natGw04:
+    Condition: CondCreate4PrivateSubnets
+    DependsOn: igwAttachment
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref pubSubnetAz04
+      AllocationId: !GetAtt natEip04.AllocationId
+
+  routeTablePrivSubnetAz04:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz4}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+
+
+  routeTableAssocPrivSubnetAz04:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref privSubnetAz04
+      RouteTableId: !Ref routeTablePrivSubnetAz04
+
+  routeTablePrivSubnetAz04Route01:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref natGw04
+      RouteTableId: !Ref routeTablePrivSubnetAz04
+  
+  naclPrivSubnetAz04:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        -  Key: Name
+           Value: !Sub ${AWS::StackName}-${pAz4}-private-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  naclAssocPrivSubnetAz04:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref privSubnetAz04
+      NetworkAclId: !Ref naclPrivSubnetAz04
+      
+  naclPrivSubnetAz04Egress01:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivSubnetAz04
+      
+  naclPrivSubnetAz04Ingress01:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: !Sub ${pVpcCidrPrefix}.0.0/16 
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivSubnetAz04
+      
+  naclPrivSubnetAz04Ingress02:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 17
+      PortRange:
+        From: 123
+        To: 123
+      RuleAction: allow
+      RuleNumber: 110
+      NetworkAclId: !Ref naclPrivSubnetAz04
+
+  naclPrivSubnetAz04Ingress03:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 6
+      PortRange:
+        From: 32768
+        To: 65535
+      RuleAction: allow
+      RuleNumber: 120
+      NetworkAclId: !Ref naclPrivSubnetAz04
+
+  naclPrivSubnetAz04Ingress04:
+    Condition: CondCreate4PrivateSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 17
+      PortRange:
+        From: 32768
+        To: 65535
+      RuleAction: allow
+      RuleNumber: 130
+      NetworkAclId: !Ref naclPrivSubnetAz04
+
+  # Private Data Subnet - Availability Zone 01
+
+  privDataSubnetAz01:
+    Condition: CondCreateDataSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz1
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pDataSubnet1octet}.0/24', !Sub '${pVpcCidrPrefix}.30.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz1}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTablePrivDataSubnetAz01:
+    Condition: CondCreateDataSubnets
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz1}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTableAssocPrivDataSubnetAz01:
+    Condition: CondCreateDataSubnets
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref privDataSubnetAz01
+      RouteTableId: !Ref routeTablePrivDataSubnetAz01
+
+  naclPrivDataSubnetAz01:
+    Condition: CondCreateDataSubnets
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz1}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+  
+  naclAssocPrivDataSubnetAz01:
+    Condition: CondCreateDataSubnets
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref naclPrivDataSubnetAz01
+      SubnetId: !Ref privDataSubnetAz01
+
+  naclPrivDataSubnetAz01Egress01:
+    Condition: CondCreateDataSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivDataSubnetAz01
+      
+  naclPrivDataSubnetAz01Ingress01:
+    Condition: CondCreateDataSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: !Sub ${pVpcCidrPrefix}.0.0/16 
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivDataSubnetAz01
+      
+
+  # Private Data Subnet - Availability Zone 02
+
+  privDataSubnetAz02:
+    Condition: CondCreate2DataSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz2
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pDataSubnet2octet}.0/24', !Sub '${pVpcCidrPrefix}.31.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz2}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTablePrivDataSubnetAz02:
+    Condition: CondCreate2DataSubnets
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz2}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTableAssocPrivDataSubnetAz02:
+    Condition: CondCreate2DataSubnets
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref privDataSubnetAz02
+      RouteTableId: !Ref routeTablePrivDataSubnetAz02
+      
+  naclPrivDataSubnetAz02:
+    Condition: CondCreate2DataSubnets
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz2}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+  
+  naclAssocPrivDataSubnetAz02:
+    Condition: CondCreate2DataSubnets
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref naclPrivDataSubnetAz02
+      SubnetId: !Ref privDataSubnetAz02
+
+  naclPrivDataSubnetAz01Egress02:
+    Condition: CondCreate2DataSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivDataSubnetAz02
+      
+  naclPrivDataSubnetAz01Ingress02:
+    Condition: CondCreate2DataSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: !Sub ${pVpcCidrPrefix}.0.0/16 
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivDataSubnetAz02
+
+  # Private Data Subnet - Availability Zone 03
+
+  privDataSubnetAz03:
+    Condition: CondCreate3DataSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz3
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pDataSubnet3octet}.0/24', !Sub '${pVpcCidrPrefix}.32.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz3}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTablePrivDataSubnetAz03:
+    Condition: CondCreate3DataSubnets
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz3}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTableAssocPrivDataSubnetAz03:
+    Condition: CondCreate3DataSubnets
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref privDataSubnetAz03
+      RouteTableId: !Ref routeTablePrivDataSubnetAz03
+      
+  naclPrivDataSubnetAz03:
+    Condition: CondCreate3DataSubnets
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz3}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+  
+  naclAssocPrivDataSubnetAz03:
+    Condition: CondCreate3DataSubnets
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref naclPrivDataSubnetAz03
+      SubnetId: !Ref privDataSubnetAz03
+
+  naclPrivDataSubnetAz03Egress01:
+    Condition: CondCreate3DataSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivDataSubnetAz03
+      
+  naclPrivDataSubnetAz03Ingress02:
+    Condition: CondCreate3DataSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: !Sub ${pVpcCidrPrefix}.0.0/16 
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivDataSubnetAz03
+
+  # Private Data Subnet - Availability Zone 04
+
+  privDataSubnetAz04:
+    Condition: CondCreate4DataSubnets
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAz4
+      VpcId: !Ref vpc01
+      CidrBlock: !If [CondSpecifyCustomCIDRs, !Sub '${pVpcCidrPrefix}.${pDataSubnet4octet}.0/24', !Sub '${pVpcCidrPrefix}.33.0/24']
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz4}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTablePrivDataSubnetAz04:
+    Condition: CondCreate4DataSubnets
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz4}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+
+  routeTableAssocPrivDataSubnetAz04:
+    Condition: CondCreate4DataSubnets
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref privDataSubnetAz04
+      RouteTableId: !Ref routeTablePrivDataSubnetAz04
+      
+  naclPrivDataSubnetAz04:
+    Condition: CondCreate4DataSubnets
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref vpc01
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-${pAz4}-private-data-subnet
+        - Key: environment
+          Value: !Ref pEnvironmentTag
+        - Key: controlled-by
+          Value: !Sub cloudformation-${AWS::StackName}
+  
+  naclAssocPrivDataSubnetAz04:
+    Condition: CondCreate4DataSubnets
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref naclPrivDataSubnetAz04
+      SubnetId: !Ref privDataSubnetAz04
+
+  naclPrivDataSubnetAz04Egress01:
+    Condition: CondCreate4DataSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivDataSubnetAz04
+      
+  naclPrivDataSubnetAz04Ingress02:
+    Condition: CondCreate4DataSubnets
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      Egress: false
+      CidrBlock: !Sub ${pVpcCidrPrefix}.0.0/16 
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      NetworkAclId: !Ref naclPrivDataSubnetAz04
+
+Outputs:
+
+  TemplateVersion:
+    Value: vpc-0.4
+    Description: Template Version
+
+  vpcId:
+    Value: !Ref vpc01
+    Description: VPC ID
+    Export:
+      Name: !Sub ${AWS::StackName}-vpc-id
+
+  vpcCidr:
+    Value: !Sub ${pVpcCidrPrefix}.0.0/16
+    Description: VPC CIDR
+    Export:
+      Name: !Sub ${AWS::StackName}-vpc-cidr
+
+  pubSubnet01Id:
+    Description: Public Subnet 01 ID
+    Value: !Ref pubSubnetAz01
+    Export:
+      Name: !Sub ${AWS::StackName}-public-subnet-01
+  
+  pubSubnet02Id:
+    Condition: CondTwoAz
+    Description: Public Subnet 02 ID
+    Value: !Ref pubSubnetAz02
+    Export:
+      Name: !Sub ${AWS::StackName}-public-subnet-02
+
+  pubSubnet03Id:
+    Condition: CondThreeAz
+    Description: Public Subnet 03 ID
+    Value: !Ref pubSubnetAz03
+    Export:
+      Name: !Sub ${AWS::StackName}-public-subnet-03
+
+  pubSubnet04Id:
+    Condition: CondFourAz
+    Description: Public Subnet 04 ID
+    Value: !Ref pubSubnetAz04
+    Export:
+      Name: !Sub ${AWS::StackName}-public-subnet-04
+
+
+  privSubnet01Id:
+    Condition: CondCreatePrivateSubnets
+    Description: Private Subnet 01 ID
+    Value: !Ref privSubnetAz01
+    Export:
+      Name: !Sub ${AWS::StackName}-private-subnet-01
+  
+  privSubnet02Id:
+    Condition: CondCreate2PrivateSubnets
+    Description: Private Subnet 02 ID
+    Value: !Ref privSubnetAz02
+    Export:
+      Name: !Sub ${AWS::StackName}-private-subnet-02
+
+  privSubnet03Id:
+    Condition: CondCreate3PrivateSubnets
+    Description: Private Subnet 03 ID
+    Value: !Ref privSubnetAz03
+    Export:
+      Name: !Sub ${AWS::StackName}-private-subnet-03
+
+  privSubnet04Id:
+    Condition: CondCreate4PrivateSubnets
+    Description: Private Subnet 04 ID
+    Value: !Ref privSubnetAz04
+    Export:
+      Name: !Sub ${AWS::StackName}-private-subnet-04
+
+  privDataSubnet01Id:
+    Condition: CondCreateDataSubnets
+    Description: Private Data Subnet 01 ID
+    Value: !Ref privDataSubnetAz01
+    Export:
+      Name: !Sub ${AWS::StackName}-private-data-subnet-01
+  
+  privDataSubnet02Id:
+    Condition: CondCreate2DataSubnets
+    Description: Private Data Subnet 02 ID
+    Value: !Ref privDataSubnetAz02
+    Export:
+      Name: !Sub ${AWS::StackName}-private-data-subnet-02
+  
+  privDataSubnet03Id:
+    Condition: CondCreate3DataSubnets
+    Description: Private Data Subnet 03 ID
+    Value: !Ref privDataSubnetAz03
+    Export:
+      Name: !Sub ${AWS::StackName}-private-data-subnet-03
+  
+  privDataSubnet04Id:
+    Condition: CondCreate4DataSubnets
+    Description: Private Data Subnet 04 ID
+    Value: !Ref privDataSubnetAz04
+    Export:
+      Name: !Sub ${AWS::StackName}-private-data-subnet-04
+
+  routeTablePubSubnetAz01:
+    Description: Public Subnet 01 Route Table ID
+    Value: !Ref routeTablePubSubnetAz01
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-pubSubnet-01
+
+  routeTablePubSubnetAz02:
+    Condition: CondTwoAz
+    Description: Public Subnet 02 Route Table ID
+    Value: !Ref routeTablePubSubnetAz02
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-pubSubnet-02
+
+  routeTablePubSubnetAz03:
+    Condition: CondThreeAz
+    Description: Public Subnet 03 Route Table ID
+    Value: !Ref routeTablePubSubnetAz03
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-pubSubnet-03
+  
+  routeTablePubSubnetAz04:
+    Condition: CondFourAz
+    Description: Public Subnet 04 Route Table ID
+    Value: !Ref routeTablePubSubnetAz04
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-pubSubnet-04
+  
+  routeTablePrivSubnetAz01:
+    Condition: CondCreatePrivateSubnets
+    Description: Private Subnet 01 Route Table ID
+    Value: !Ref routeTablePrivSubnetAz01
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-privSubnet-01
+
+  routeTablePrivSubnetAz02:
+    Condition: CondCreate2PrivateSubnets
+    Description: Private Subnet 02 Route Table ID
+    Value: !Ref routeTablePrivSubnetAz02
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-privSubnet-02
+
+  routeTablePrivSubnetAz03:
+    Condition: CondCreate3PrivateSubnets
+    Description: Private Subnet 03 Route Table ID
+    Value: !Ref routeTablePrivSubnetAz03
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-privSubnet-03
+
+  routeTablePrivSubnetAz04:
+    Condition: CondCreate4PrivateSubnets
+    Description: Private Subnet 04 Route Table ID
+    Value: !Ref routeTablePrivSubnetAz04
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-privSubnet-04
+
+  routeTablePrivDataSubnetAz01:
+    Condition: CondCreateDataSubnets
+    Description: Private Data Subnet 01 Route Table ID
+    Value: !Ref routeTablePrivDataSubnetAz01
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-privDataSubnet-01
+
+  routeTablePrivDataSubnetAz02:
+    Condition: CondCreate2DataSubnets
+    Description: Private Data Subnet 02 Route Table ID
+    Value: !Ref routeTablePrivDataSubnetAz02
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-privDataSubnet-02
+
+  routeTablePrivDataSubnetAz03:
+    Condition: CondCreate3DataSubnets
+    Description: Private Data Subnet 03 Route Table ID
+    Value: !Ref routeTablePrivDataSubnetAz03
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-privDataSubnet-03
+
+  routeTablePrivDataSubnetAz04:
+    Condition: CondCreate4DataSubnets
+    Description: Private Data Subnet 04 Route Table ID
+    Value: !Ref routeTablePrivDataSubnetAz04
+    Export:
+      Name: !Sub ${AWS::StackName}-route-table-privDataSubnet-04
+
+
+  naclAssocPubSubnetAz01:
+    Description: Public Subnet 01 NACL
+    Value: !Ref naclPubSubnetAz01
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-pubSubnet-01
+
+  naclAssocPubSubnetAz02:
+    Condition: CondTwoAz
+    Description: Public Subnet 02 NACL
+    Value: !Ref naclPubSubnetAz02
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-pubSubnet-02
+
+  naclAssocPubSubnetAz03:
+    Condition: CondThreeAz
+    Description: Public Subnet 03 NACL
+    Value: !Ref naclPubSubnetAz03
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-pubSubnet-03
+
+  naclAssocPubSubnetAz04:
+    Condition: CondFourAz
+    Description: Public Subnet 04 NACL
+    Value: !Ref naclPubSubnetAz04
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-pubSubnet-04
+
+  naclPrivSubnetAz01:
+    Condition: CondCreatePrivateSubnets
+    Description: Private Subnet 01 NACL
+    Value: !Ref naclPrivSubnetAz01
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-privSubnet-01
+
+  naclPrivSubnetAz02:
+    Condition: CondCreate2PrivateSubnets
+    Description: Private Subnet 02 NACL
+    Value: !Ref naclPrivSubnetAz02
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-privSubnet-02
+
+  naclPrivSubnetAz03:
+    Condition: CondCreate3PrivateSubnets
+    Description: Private Subnet 03 NACL
+    Value: !Ref naclPrivSubnetAz03
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-privSubnet-03
+
+  naclPrivSubnetAz04:
+    Condition: CondCreate4PrivateSubnets
+    Description: Private Subnet 04 NACL
+    Value: !Ref naclPrivSubnetAz04
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-privSubnet-04
+
+  naclPrivDataSubnetAz01:
+    Condition: CondCreateDataSubnets
+    Description: Private Data Subnet 01 NACL
+    Value: !Ref naclPrivDataSubnetAz01
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-privDataSubnet-01
+
+  naclPrivDataSubnetAz02:
+    Condition: CondCreate2DataSubnets
+    Description: Private Data Subnet 02 NACL
+    Value: !Ref naclPrivDataSubnetAz02
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-privDataSubnet-02
+
+  naclPrivDataSubnetAz03:
+    Condition: CondCreate3DataSubnets
+    Description: Private Data Subnet 03 NACL
+    Value: !Ref naclPrivDataSubnetAz03
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-privDataSubnet-03
+
+  naclPrivDataSubnetAz04:
+    Condition: CondCreate4DataSubnets
+    Description: Private Data Subnet 04 NACL
+    Value: !Ref naclPrivDataSubnetAz04
+    Export:
+      Name: !Sub ${AWS::StackName}-nacl-privDataSubnet-04

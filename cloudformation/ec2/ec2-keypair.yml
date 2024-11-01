@@ -1,0 +1,47 @@
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template creates a key pair and injects the key pair value in Parameter Store (/ec2/keypair/key-*).
+
+Parameters:
+
+  pKeyPairName:
+    Description: The EC2 Key Pair name
+    Type: String
+    Default: <CLIENT NAME>-<ENVIRONMENT>-<YYYY-MM-DD>
+  
+  pEnvironmentTag:
+    Type: String
+    Description: Environment type for default resource tagging.
+    Default: sandbox
+    AllowedValues:
+      - production
+      - staging
+      - sandbox
+      - test
+      - development
+      - qa
+      - dr
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      pKeyPairName:
+        default: Key Pair Name
+
+    ParameterGroups:
+      - Label:
+          default: Key Pair Settings
+        Parameters:
+          - pKeyPairName
+
+Resources:
+  # Keypair
+  keyPair:
+    Type: AWS::EC2::KeyPair
+    Properties: 
+      KeyName: !Ref pKeyPairName
+
+Outputs:
+  TemplateVersion:
+    Value: ec2-keypair-v1.0
+    Description: Template Version
