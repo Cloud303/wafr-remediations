@@ -1,82 +1,73 @@
 ---
 layout: page
-title:  VPC Deployment Guide
-permalink: /remediation-guides/vpc/
+title: 'VPC Infrastructure Deployment Guide'
+permalink: '/remediation-guides/vpc/'
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  VPC Deployment Guide
+#  VPC Infrastructure Deployment Guide
 
-This guide walks through deploying a highly configurable VPC using CloudFormation. The template creates a production-ready VPC architecture with public, private and data subnets across multiple Availability Zones.
+This guide walks through deploying a highly available and secure VPC infrastructure using CloudFormation. The template creates a production-ready VPC with public, private and data subnets across multiple Availability Zones.
 
 ## Benefits
 
-- **High Availability** - Deploy across up to 4 AZs for maximum redundancy
-- **Security** - Isolated subnet tiers with Network ACLs and private networking
-- **Cost Optimization** - Only deploy the resources you need with configurable options
-- **Scalability** - Flexible CIDR ranges to accommodate future growth
-- **Operational Excellence** - Consistent networking through Infrastructure as Code
-- **Compliance** - VPC Flow Logs for network monitoring and auditing
+- **High Availability**: Deploy across up to 4 AZs for maximum redundancy and fault tolerance
+- **Security**: Private subnets and NACLs protect sensitive workloads from direct internet access
+- **Cost Optimization**: NAT Gateways only in AZs where needed
+- **Performance**: VPC Endpoints for S3 and ECR reduce data transfer costs and latency
+- **Flexibility**: Customizable CIDR ranges and subnet configurations
+- **Monitoring**: Built-in VPC Flow Logs for network traffic analysis
+- **Automation**: Infrastructure as code for consistent deployments
 
 ## Prerequisites
 
 - AWS account with permissions to create VPC resources
 - Basic understanding of VPC networking concepts
-- [CloudFormation template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/vpc/vpc.yml)
+- AWS CLI or Console access
 
 ## Deployment Steps
 
-1. Navigate to the AWS CloudFormation console
+1. Download the CloudFormation template:
+   ```bash
+   curl -O https://raw.githubusercontent.com/Cloud303/wafr-remediations/blob/main/cloudformation/vpc/vpc.yml
+   ```
 
-2. Click "Create stack" and choose "With new resources"
+2. Navigate to the CloudFormation console in your desired region
 
-3. Upload the template file or specify the template URL
+3. Click "Create Stack" and upload the template file
 
 4. Configure the stack parameters:
-   - Number of Availability Zones (1-4)
-   - VPC CIDR block
-   - Subnet CIDR blocks
+   - Select number of Availability Zones (1-4)
+   - Specify VPC CIDR range
    - Enable/disable private and data subnets
-   - DNS settings
-   - VPC Flow Log retention
-   - VPC endpoint options
-   - Environment tag
+   - Configure DNS settings
+   - Set VPC Flow Log retention
+   - Enable required VPC Endpoints
+   - Add environment tags
 
 5. Review the configuration and create the stack
 
-6. Monitor the stack creation progress
+6. Monitor the stack creation progress (~10-15 minutes)
 
-7. Once complete, note the outputs for use in other templates
+7. Once complete, note the exported outputs for use in other stacks
 
-## Post-Deployment
+## Validation
 
-- Validate subnet connectivity
-- Test NAT Gateway internet access from private subnets
-- Verify VPC endpoint access if configured
-- Review Network ACL rules
-- Configure additional security groups as needed
-- Set up monitoring for VPC Flow Logs
+After deployment, verify:
 
-## Customization
+- Subnets are created in specified AZs
+- Route tables are configured correctly
+- NAT Gateways are operational
+- VPC Endpoints are accessible
+- Flow Logs are being generated
 
-The template can be customized by:
+## Next Steps
 
-- Modifying CIDR ranges
-- Adjusting the number of AZs
-- Adding/removing subnet tiers
-- Customizing Network ACL rules
-- Enabling additional VPC endpoints
-- Changing DNS settings
+- Deploy workloads into the private subnets
+- Configure security groups for resources
+- Set up VPN or Direct Connect for remote access
+- Enable additional VPC Endpoints as needed
+- Monitor VPC Flow Logs for security analysis
 
-Refer to the template parameters for all available configuration options.
-
-## Troubleshooting
-
-Common issues:
-- CIDR range conflicts
-- Insufficient IP space
-- Missing permissions
-- NAT Gateway connectivity problems
-
-Check CloudWatch Logs and the stack events for error details.
+[View Template Source](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/vpc/vpc.yml)

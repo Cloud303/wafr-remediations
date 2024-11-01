@@ -1,7 +1,7 @@
 ---
 layout: page
-title:  AWS Budget Deployment Guide
-permalink: /remediation-guides/budgets/
+title: 'AWS Budget Deployment Guide'
+permalink: '/remediation-guides/budgets/'
 resource: true
 categories: [Remediation Guides]
 ---
@@ -15,67 +15,53 @@ Setting up AWS Budgets provides several key advantages:
 - **Cost Control**: Get early warnings when spending approaches defined thresholds
 - **Financial Planning**: Track costs against monthly, quarterly or annual budgets
 - **Automated Monitoring**: Receive email notifications without manual tracking
-- **Comprehensive Coverage**: Monitor all cost types including credits, taxes, and support fees
-- **Proactive Management**: Take action before costs exceed planned amounts
+- **Comprehensive Coverage**: Monitor all cost types including credits, support, taxes etc.
+- **Customizable Thresholds**: Set notification thresholds that match your risk tolerance
 
-## Deployment Steps
+## Quick Start
 
-### Prerequisites
-- AWS Account access with permissions to create CloudFormation stacks
-- Email address for notifications
+1. Access the budget template [here](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/monitoring/budgets.yml)
 
-### Template
-The CloudFormation template can be found here:
-[AWS Budget Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/monitoring/budgets.yml)
+2. Deploy via AWS Console:
+   - Open CloudFormation
+   - Click "Create Stack" 
+   - Choose "With new resources (standard)"
+   - Upload template file or specify template URL
 
-### Deployment Instructions
+3. Configure Parameters:
+   ```
+   pAmount: Your budget amount (required)
+   pTimeUnit: MONTHLY, QUARTERLY, or ANNUALLY
+   pNotificationThreshold: Percentage for alerts (default 80)
+   pNotificationEmail: Email for notifications (required)
+   ```
 
-1. Navigate to AWS CloudFormation in your AWS Console
+4. Review and create stack
 
-2. Click "Create Stack" and choose "With new resources"
+## Verification
 
-3. Upload the template or specify the template URL
+After deployment:
 
-4. Configure the required parameters:
-   - `pAmount`: Set your desired budget amount
-   - `pTimeUnit`: Choose MONTHLY, QUARTERLY, or ANNUALLY
-   - `pNotificationThreshold`: Set percentage for alerts (default 80)
-   - `pNotificationEmail`: Enter notification email address
+1. Navigate to AWS Billing Console
+2. Select "Budgets" from left menu  
+3. Verify budget appears with correct:
+   - Amount
+   - Time period
+   - Notification settings
+   - Email recipient
 
-5. Click through the stack creation wizard, reviewing the settings
+## Maintenance
 
-6. Acknowledge that CloudFormation will create IAM resources
-
-7. Click "Create stack"
-
-### Verification
-
-1. Once the stack creation is complete, verify in the AWS Budgets console that your budget appears
-
-2. Confirm the notification email address receives a subscription confirmation
-
-3. Check the CloudFormation outputs to verify the version (budgets-0.1)
-
-## Customization Options
-
-The budget can be customized by modifying the template:
-
-- Change the budget name
-- Adjust which cost types are included/excluded
-- Add additional notification thresholds
-- Modify notification types
+- Budget will automatically reset based on chosen time unit
+- Notifications will send when spending exceeds threshold
+- Update stack parameters if budget amounts need adjustment
+- Delete stack to remove budget and notifications
 
 ## Troubleshooting
 
-Common issues and solutions:
+Common issues:
+- Invalid email format - Ensure email is correctly formatted
+- Missing permissions - Verify IAM permissions for budget creation
+- Failed notifications - Check email spam filters
 
-- If stack creation fails, check IAM permissions
-- If notifications aren't received, verify email subscription was confirmed
-- For threshold issues, ensure percentage is entered as a number (e.g. 80)
-
-## Support
-
-For template issues or questions, refer to:
-- AWS Budgets documentation
-- CloudFormation documentation
-- The template README
+For additional support, refer to AWS Budgets documentation.

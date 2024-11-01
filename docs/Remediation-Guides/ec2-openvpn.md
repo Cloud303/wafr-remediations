@@ -1,85 +1,77 @@
 ---
 layout: page
-title:  OpenVPN Server Deployment Guide
-permalink: /remediation-guides/ec2-openvpn/
+title: 'Deploy an OpenVPN Server with CloudFormation'
+permalink: '/remediation-guides/ec2-openvpn/'
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  OpenVPN Server Deployment Guide
+#  Deploy an OpenVPN Server with CloudFormation
 
-This guide walks through deploying an OpenVPN server on AWS using CloudFormation. The template provides a secure and automated way to set up a VPN server with minimal configuration required.
+This guide walks through deploying a secure OpenVPN server on AWS using CloudFormation. The template provides an easy way to set up a VPN server with minimal configuration required.
 
 ## Benefits
 
-- **Cost Effective**: Uses ARM-based Graviton processors which offer better price/performance
-- **Secure**: Automatically configures security groups and IAM roles with least privilege
-- **Reliable**: Optional auto-recovery ensures high availability
-- **Scalable**: Separate EBS volume for VPN data allows for easy backup and recovery
-- **Monitored**: Optional DataDog integration for monitoring
-- **Automated**: One-click deployment with CloudFormation
+- **Quick Setup**: Deploy a fully configured OpenVPN server in minutes
+- **Cost Effective**: Uses ARM-based Graviton processors for better price/performance
+- **Secure**: Creates isolated security groups and follows AWS best practices
+- **Reliable**: Optional auto-recovery and monitoring capabilities
+- **Flexible**: Configurable instance sizes and networking options
+- **Managed**: Infrastructure as code makes updates and maintenance simple
 
 ## Prerequisites
 
-- AWS account with permissions to create EC2, IAM, and CloudFormation resources
-- VPC and subnet where the VPN server will be deployed
-- EC2 key pair for SSH access
-- VPC CIDR range information
+- An AWS account with permissions to create the required resources
+- A VPC and subnet where the VPN server will be deployed
+- An EC2 key pair for SSH access
+- The subnet must have internet connectivity via an Internet Gateway
 
 ## Deployment Steps
 
-1. Download the CloudFormation template from [here](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/ec2-openvpn.yml)
+1. Download the CloudFormation template:
+   [ec2-openvpn.yml](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/ec2-openvpn.yml)
 
-2. Log into the AWS Console and navigate to CloudFormation
+2. Navigate to the AWS CloudFormation console
 
-3. Click "Create Stack" and upload the template file
+3. Click "Create Stack" and choose "With new resources"
 
-4. Fill in the required parameters:
+4. Upload the template file
+
+5. Fill in the required parameters:
    - VPC ID and CIDR
-   - Instance type (t4g.micro recommended for testing, t4g.small for production)
-   - EC2 key pair name
    - Subnet ID
+   - Instance type (t4g.micro recommended for testing)
+   - EC2 key pair name
    - OpenVPN admin password
-   - Auto-recovery setting
-   - DataDog monitoring preference
    - Environment tag
+   - Auto-recovery preference
+   - DataDog monitoring preference
 
-5. Review and create the stack
+6. Review and create the stack
 
-6. Once deployment is complete (10-15 minutes), get the OpenVPN Server URL from the stack outputs
+7. Wait for stack creation to complete (~5-10 minutes)
 
-7. Access the OpenVPN admin interface using:
-   - URL: https://<OpenVPN Server URL>:943/admin
-   - Username: openvpn
-   - Password: (specified during deployment)
+8. Access the OpenVPN admin interface using the URL provided in the stack outputs
 
-## Post-Deployment Configuration
+## Post-Deployment
 
-1. Log into the admin interface
-2. Configure additional users and access policies as needed
-3. Download the OpenVPN client for your platform
-4. Connect using client credentials
+1. Log into the OpenVPN admin interface using:
+   - Username: `openvpn`
+   - Password: (the one you specified in parameters)
+
+2. Configure your VPN client settings and download connection profiles
+
+3. Connect to the VPN using your preferred OpenVPN client
 
 ## Monitoring
 
-- If DataDog monitoring was enabled, the instance will appear in your DataDog dashboard
-- CloudWatch alarms will monitor instance health if auto-recovery was enabled
-- Check CloudFormation stack events for deployment issues
+- If enabled, CloudWatch alarms will monitor instance health
+- DataDog integration provides additional monitoring capabilities
+- Instance logs are available in CloudWatch Logs
 
-## Security Considerations
+## Security Notes
 
-- The template creates a security group allowing:
-  - TCP 443 (HTTPS) for web admin
-  - TCP 943 (OpenVPN Admin)
-  - UDP 1194 (OpenVPN)
-  - TCP 22 (SSH) from VPC CIDR only
-- Consider adding additional security group rules as needed
-- Regularly update the admin password
-- Monitor VPN access logs
-
-## Support
-
-For issues with the template, please check:
-1. CloudFormation stack events
-2. EC2 instance system logs
-3. OpenVPN server logs at /var/log/openvpn
+- The security group only allows VPN and SSH traffic
+- All data is encrypted in transit
+- Regular Ubuntu security updates are automatically applied
+- Additional EBS volume provides secure storage for VPN data

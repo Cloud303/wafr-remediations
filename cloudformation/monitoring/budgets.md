@@ -23,9 +23,9 @@ The template creates the following AWS resource:
 
 ## Usage
 
-1. Upload the template to CloudFormation or use it with AWS CLI.
-2. Provide values for the required parameters.
-3. Create the stack.
+1. Upload the template to CloudFormation or use it directly from an S3 bucket.
+2. Create a new stack and provide values for the parameters.
+3. Review and create the stack.
 
 ## Outputs
 
@@ -35,14 +35,7 @@ The template creates the following AWS resource:
 
 - The budget is set up for the AWS account where the CloudFormation stack is created.
 - Notifications are sent via email when actual spend exceeds the specified threshold percentage.
-- The budget includes various cost types like credits, discounts, subscriptions, support, taxes, etc.
-
-## Customization
-
-You can modify the template to adjust:
-- Budget name
-- Cost types included in the budget
-- Additional notification thresholds or types
+- The budget includes various cost types like credits, discounts, subscriptions, support, taxes, and upfront costs.
 
 ## License
 

@@ -16,12 +16,12 @@ The template sets up the following resources:
 
 The template requires the following parameters:
 
-- `pRdsDbPort`: RDS database port (Default: 3306)
-- `pEnvironmentTag`: Environment tag for resources (e.g., production, staging)
+- `pRdsDbPort`: RDS database port (default: 3306)
+- `pEnvironmentTag`: Environment tag for resources
 - `pVpcId`: VPC ID
-- `pSecurityGroupID`: Security Group ID
-- `pVpcCidr`: VPC CIDR range
-- `pKmsARN`: KMS key ARN for Secrets Manager encryption
+- `pSecurityGroupID`: Security Group ID  
+- `pVpcCidr`: VPC CIDR block
+- `pKmsARN`: KMS key ARN for Secrets Manager
 - `pPrivsubnetA`: Private subnet ID
 - `pPrivsubnetB`: Private subnet ID
 - `pRdsInstanceIdentifier`: RDS instance identifier
@@ -29,36 +29,30 @@ The template requires the following parameters:
 
 ## Resources Created
 
-1. `ClusterSecurityGroup`: Security group for RDS access
-2. `iamLambdaRole`: IAM role for Lambda function
-3. `iamLambdaPolicy`: IAM policy for Lambda function
-4. `DBSecretsManagerSecret`: Secrets Manager secret for database credentials
-5. `DBSecretsManagerSecretAttachment`: Attaches the secret to the RDS instance
-6. `DBSecretsManagerSecretRotation`: Sets up the rotation schedule
-7. `SecretsManagerVPCEndpointIngress`: Security group ingress rule for Secrets Manager VPC endpoint
-8. `DBSecretsManagerSecretRotationFunction`: Lambda function for secret rotation (using AWS SAM)
-9. `DBSecretsManagerLambdaInvokePermission`: Lambda invoke permission for Secrets Manager
+- `ClusterSecurityGroup`: Security group for RDS access
+- `iamLambdaRole`: IAM role for Lambda rotation function
+- `iamLambdaPolicy`: IAM policy for Lambda role
+- `DBSecretsManagerSecret`: Secrets Manager secret for DB credentials
+- `DBSecretsManagerSecretAttachment`: Attaches secret to RDS instance
+- `DBSecretsManagerSecretRotation`: Rotation schedule for secret
+- `SecretsManagerVPCEndpointIngress`: Security group ingress rule
+- `DBSecretsManagerSecretRotationFunction`: Lambda function for secret rotation
+- `DBSecretsManagerLambdaInvokePermission`: Lambda invoke permission
 
 ## Usage
 
-1. Deploy the CloudFormation template with the required parameters.
-2. The template will create the necessary resources for secret management and rotation.
-3. The RDS database credentials will be stored in Secrets Manager and rotated automatically every 60 days.
+1. Ensure you have the necessary parameter values ready
+2. Deploy the template using AWS CloudFormation
+3. The template will create the secret and set up automated rotation
 
-## Security Considerations
+## Notes
 
-- Ensure that the KMS key used for encryption has the appropriate permissions.
-- Review and adjust the IAM policies as needed for your specific security requirements.
-- The template uses VPC endpoints for enhanced security. Make sure your VPC is configured correctly.
+- The secret is rotated automatically every 60 days
+- The Lambda function uses the AWS Serverless Application Repository
+- Make sure the specified VPC, subnets, and security groups exist and are correctly configured
 
-## Customization
+## Security
 
-You can modify the following aspects of the template:
-
-- Rotation schedule (currently set to 60 days)
-- Lambda function configuration
-- Security group rules
-
-## Dependencies
-
-This template uses the AWS Serverless Application Model (SAM) to deploy the rotation Lambda function. Ensure you have the necessary permissions to deploy SAM applications.
+- Uses KMS for encryption
+- Leverages VPC endpoints for secure communication
+- Follows least privilege principle for IAM roles

@@ -29,7 +29,7 @@ All parameters are of type String and accept `true` or `false` values.
 The template creates the following resources based on the parameter values:
 
 - KMS keys for enabled services
-- KMS aliases for each key
+- KMS key aliases  
 - IAM managed policies for S3 and SSM keys
 
 ## Outputs
@@ -45,7 +45,7 @@ The template outputs:
 1. Upload the template to CloudFormation
 2. Specify the desired parameter values  
 3. Create the stack
-4. Use the exported key and policy ARNs in other templates or applications
+4. Use the exported key and policy ARNs in other templates/applications
 
 ## Notes
 

@@ -1,78 +1,86 @@
 ---
 layout: page
-title:  Deploying AWS Security Tools with CloudFormation
-permalink: /remediation-guides/cloud303-aws-security-tools/
+title: 'Guide: Deploying AWS Security Tools with CloudFormation'
+permalink: '/remediation-guides/cloud303-aws-security-tools/'
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  Deploying AWS Security Tools with CloudFormation
+#  Guide: Deploying AWS Security Tools with CloudFormation
 
 This guide walks through deploying a comprehensive set of AWS security tools using CloudFormation to enhance your AWS account's security posture.
 
 ## Benefits
 
-- **Centralized Security Monitoring**: Enables unified visibility across your AWS environment through CloudTrail, GuardDuty, and AWS Config
-- **Automated Compliance**: Helps meet compliance requirements with HIPAA settings and encrypted logging
-- **Threat Detection**: Provides advanced threat detection through GuardDuty and malware protection
-- **Resource Analysis**: Identifies potential security risks with IAM Access Analyzer and Amazon Inspector
-- **Simplified Deployment**: Deploy multiple security tools consistently with a single template
+Deploying these security tools provides:
+
+- **Comprehensive Monitoring** - Track all API activity across regions with CloudTrail
+- **Security Assessment** - Continuous security evaluation with GuardDuty and Inspector
+- **Compliance** - Meet security requirements with Config tracking and HIPAA settings
+- **Centralized Logs** - Encrypted logging to S3 with CloudWatch integration
+- **Access Analysis** - Identify unintended resource access with IAM Access Analyzer
+- **Automated Deployment** - Consistent security tool configuration via Infrastructure as Code
 
 ## Prerequisites
 
-- AWS account with permissions to create CloudFormation stacks
-- Basic understanding of AWS security services
+- AWS account with permissions to create the required resources
 - Email address for security notifications
+- Understanding of your compliance requirements (e.g. HIPAA)
 
 ## Deployment Steps
 
-1. Download the CloudFormation template from [here](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/security-tools/cloud303-aws-security-tools.yml)
+1. Download the CloudFormation template from:
+   [cloud303-aws-security-tools.yml](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/security-tools/cloud303-aws-security-tools.yml)
 
-2. Log into the AWS Console and navigate to CloudFormation
+2. Navigate to AWS CloudFormation in your desired region
 
-3. Click "Create stack" and choose "With new resources"
+3. Choose "Create Stack" and upload the template
 
-4. Upload the template file
-
-5. Configure the parameters:
+4. Configure the parameters:
 
    ### Required Parameters
-   - Security email endpoint for notifications
-   - Environment tag (production/development)
+   - Security Email Endpoint
+   - Environment Tag (production/development)
 
-   ### Optional Security Features
-   - GuardDuty settings (enable/disable, frequency, malware protection)
-   - AWS Config settings (enable/disable, delivery frequency)
-   - CloudTrail configuration (enable/disable, log retention)
-   - Inspector settings (notifications, S3 export)
-   - IAM Access Analyzer (enable/disable)
-   - HIPAA compliance settings
+   ### Security Tool Settings
+   - Enable/disable GuardDuty, Config, CloudTrail, Inspector
+   - Configure finding delivery frequencies
+   - Set log retention periods
+   - Enable HIPAA compliance settings if needed
 
-6. Review the configuration and click "Create stack"
+5. Review the configuration and create the stack
 
-7. Monitor the stack creation progress in the CloudFormation console
+6. Monitor stack creation progress (~15-20 minutes)
 
-8. Once complete, verify the deployment by checking:
-   - CloudTrail logs in CloudWatch
-   - GuardDuty findings dashboard
-   - AWS Config rules
-   - Inspector assessment results
-   - Access Analyzer findings
+7. Once complete, verify the outputs show successful deployment
 
-## Post-Deployment
+## Post-Deployment Steps
 
-1. Confirm receipt of test notification email
-2. Review any initial security findings
-3. Configure additional alerting if needed
-4. Document deployed security controls
+1. Verify CloudTrail logs are being delivered to S3
+2. Check GuardDuty findings dashboard
+3. Review Config rules and recordings
+4. Test Inspector scanning
+5. Examine Access Analyzer results
 
-## Maintenance
+## Maintenance Tasks
 
 - Regularly review security findings
-- Update parameters as needed through stack updates
-- Monitor CloudWatch logs for issues
-- Review Access Analyzer results monthly
+- Update parameters as needed
+- Monitor log storage usage
+- Verify notification delivery
+- Update IAM roles if permissions change
 
-## Support
+## Troubleshooting
 
-For issues or questions about the template, please open an issue in the [GitHub repository](https://github.com/Cloud303/wafr-remediations/).
+If deployment fails:
+- Check IAM permissions
+- Verify parameter values
+- Review CloudFormation events
+- Ensure service quotas aren't exceeded
+
+## Security Best Practices
+
+- Use encrypted parameters for sensitive values
+- Review and restrict IAM roles to minimum required permissions
+- Enable MFA for IAM users accessing security tools
+- Regularly audit security findings and alerts

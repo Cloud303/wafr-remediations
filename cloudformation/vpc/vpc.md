@@ -1,74 +1,62 @@
 #  VPC CloudFormation Template
 
-This CloudFormation template creates a customizable VPC with public, private, and data subnets across multiple Availability Zones. It also sets up NAT Gateways, an Internet Gateway, and VPC endpoints.
+This CloudFormation template creates a customizable VPC infrastructure with public, private, and data subnets across multiple Availability Zones.
 
 ## Features
 
 - Configurable number of Availability Zones (1-4)
-- Public subnets in each AZ
-- Optional private and data subnets in each AZ  
-- NAT Gateways in public subnets for private subnet internet access
-- Internet Gateway for public subnet internet access
+- Public subnets with Internet Gateway
+- Optional private subnets with NAT Gateways 
+- Optional data subnets
 - Customizable CIDR blocks
-- Network ACLs for each subnet
-- Optional S3 and ECR VPC endpoints
 - VPC Flow Logs
-- Custom DHCP options
+- S3 and ECR VPC Endpoints
+- Custom DNS settings
 
 ## Parameters
 
-The template accepts many parameters to customize the VPC configuration:
+The template accepts the following parameters:
 
-- Number of AZs to use (1-4)
-- AZ names
-- VPC CIDR block
+- Number of Availability Zones (1-4)
+- Availability Zone names
+- VPC CIDR prefix
+- Option to specify custom subnet CIDRs
 - Options to create private and data subnets
-- CIDR blocks for each subnet
 - Custom DNS settings
 - VPC Flow Log retention period
-- VPC endpoint options
+- Options for S3 and ECR VPC Endpoints
 - Environment tag
 
 ## Resources Created
 
 - VPC
-- Internet Gateway  
+- Internet Gateway
 - Public subnets (1-4)
-- Private subnets (0-4)
+- Private subnets (0-4) 
 - Data subnets (0-4)
-- NAT Gateways
+- NAT Gateways (1 per AZ)
 - Route tables
 - Network ACLs
 - VPC Flow Logs
-- VPC Endpoints (optional)
-- DHCP Options Set
+- S3 VPC Endpoint
+- ECR VPC Endpoints
 
 ## Outputs
 
-The template outputs IDs and other details for the created resources, including:
+The template exports the following outputs:
 
 - VPC ID and CIDR
 - Subnet IDs 
 - Route table IDs
 - NACL IDs
 
-Many outputs are exported for use in other stacks.
-
 ## Usage
 
 1. Upload the template to CloudFormation
-2. Specify parameter values
+2. Specify the desired parameters 
 3. Create the stack
-4. Reference outputs in other templates as needed
+4. Reference the exported outputs in other stacks
 
 ## Customization
 
-The template uses conditions extensively to allow customizing the VPC architecture. Key areas that can be customized:
-
-- Number of AZs (1-4)
-- Whether to create private and data subnets
-- CIDR blocks for VPC and subnets
-- DNS settings
-- VPC endpoints
-
-Modify the template as needed for your specific requirements.
+The template can be customized by modifying the parameters, conditions, and resources as needed for your specific requirements.

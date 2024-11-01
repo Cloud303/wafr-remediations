@@ -1,68 +1,73 @@
 ---
 layout: page
-title:  Guide: Deploying AWS Service KMS Keys with CloudFormation
-permalink: /remediation-guides/kms-service-keys/
+title: 'Guide: Deploying AWS Service KMS Keys with CloudFormation'
+permalink: '/remediation-guides/kms-service-keys/'
 resource: true
 categories: [Remediation Guides]
 ---
 
 #  Guide: Deploying AWS Service KMS Keys with CloudFormation
 
-This guide walks through deploying a CloudFormation template that creates customer-managed KMS keys for encrypting AWS resources.
+## Benefits of Deploying Service-Specific KMS Keys
 
-## Benefits
-
-- **Enhanced Security**: Customer-managed keys provide more control over encryption compared to AWS-managed keys
+- **Enhanced Security**: Customer-managed keys provide greater control over encryption compared to AWS-managed keys
 - **Cross-Account Access**: Keys can be shared across accounts via KMS key policies
-- **Centralized Management**: Single template creates and manages keys for multiple services
-- **Cost Optimization**: Consolidate key management and reduce overhead
-- **Compliance**: Better audit and control capabilities for regulated environments
+- **Audit Capabilities**: Track key usage through CloudTrail logs
+- **Cost Optimization**: Consolidate key management and reduce operational overhead
+- **Compliance**: Meet regulatory requirements for data encryption and key management
 
-## Template Link
+## Template Overview
 
-The CloudFormation template can be found here:
-[kms-service-keys.yml](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/kms/kms-service-keys.yml)
+The CloudFormation template creates KMS keys for encrypting data across multiple AWS services including:
+
+- EBS volumes
+- RDS databases  
+- EFS file systems
+- FSx file systems
+- S3 buckets
+- Systems Manager
+- ElastiCache
+- Elasticsearch
+- CloudWatch Logs
+- Timestream
+
+[View Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/kms/kms-service-keys.yml)
 
 ## Deployment Steps
 
-1. Navigate to AWS CloudFormation in your console
+1. Download the template from the link above
 
-2. Click "Create Stack" and choose "With new resources"
+2. Navigate to AWS CloudFormation console
 
-3. Upload the template file or specify the template URL
+3. Click "Create Stack" and choose "With new resources"
 
-4. Configure the stack parameters:
-   - Enable/disable keys for specific services by setting parameters to `true` or `false`
-   - Common services to enable:
-     - `pCreateKmsEbsKey` for EBS volumes
-     - `pCreateKmsS3Key` for S3 buckets
-     - `pCreateKmsSsmKey` for Systems Manager
-     - `pCreateKmsCwKey` for CloudWatch Logs
+4. Upload the template file
 
-5. Review the stack configuration
+5. Configure stack parameters:
+   - Set `true` for services that need KMS keys
+   - Set `false` to skip key creation for specific services
+   - Enable `pAddBackupAccess` if using AWS Backup with EFS
 
-6. Click "Create stack" to deploy
+6. Review and create the stack
 
-## Post-Deployment
+7. Once complete, note the outputs:
+   - KMS key ARNs for each service
+   - IAM policy ARNs for S3 and SSM
 
-1. Note the output values for:
-   - KMS key ARNs 
-   - IAM policy ARNs
+## Using the Keys
 
-2. Use the key ARNs when creating encrypted resources:
-   - Specify key ARN when creating EBS volumes
-   - Reference key in S3 bucket encryption settings
-   - Configure CloudWatch log groups with KMS encryption
-
-3. Attach IAM policies to roles that need access to encrypted resources
+- Reference key ARNs when creating encrypted resources
+- Attach IAM policies to roles that need access
+- Update key policies as needed for cross-account access
+- Monitor key usage in CloudTrail
 
 ## Best Practices
 
-- Enable only the keys needed for your environment
-- Document which resources use which keys
-- Review key policies periodically
-- Enable AWS CloudTrail to audit key usage
+- Enable only required service keys to minimize costs
+- Document key usage and rotation policies
+- Regularly audit key access permissions
 - Consider enabling automatic key rotation
+- Back up key policies and metadata
 
 ## Troubleshooting
 
@@ -70,4 +75,4 @@ If deployment fails:
 - Verify IAM permissions
 - Check parameter values are `true` or `false`
 - Ensure service quotas allow additional KMS keys
-- Review CloudWatch logs for detailed error messages
+- Review CloudWatch logs for detailed errors
