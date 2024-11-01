@@ -8,94 +8,96 @@ categories: [Remediation Guides]
 
 #  Deploying RDS Secrets Manager Rotation with CloudFormation
 
-This guide will walk you through the process of deploying an AWS CloudFormation template that sets up AWS Secrets Manager for RDS database credentials with automated rotation.
+## Benefits of Deployment
 
-## Prerequisites
+Deploying the resources described in this README offers several key advantages:
+
+1. **Enhanced Security**: Automatically rotates database credentials, reducing the risk of compromised long-term secrets.
+2. **Compliance**: Helps meet regulatory requirements for periodic credential rotation.
+3. **Simplified Management**: Centralizes secret storage and rotation in AWS Secrets Manager.
+4. **Automation**: Eliminates manual rotation processes, saving time and reducing human error.
+5. **Integration**: Seamlessly works with RDS databases and other AWS services.
+6. **Scalability**: Easy to apply across multiple environments and databases.
+
+## Deployment Guide
+
+### Prerequisites
 
 - AWS CLI configured with appropriate permissions
-- Access to the AWS Management Console
-- VPC, subnets, and security groups already set up
-- An existing RDS instance
+- Basic understanding of AWS CloudFormation
+- Access to the AWS account where resources will be deployed
 
-## Template
+### Steps
 
-The CloudFormation template can be found here:
-[RDS Secrets Manager Rotation Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/secrets-manager/secrets-manager-template.yml)
+1. **Review the Template**
+   
+   Examine the CloudFormation template to understand the resources being created:
+   [Secrets Manager Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/secrets-manager/secrets-manager-template.yml)
 
-## Deployment Steps
+2. **Gather Required Parameters**
 
-1. **Prepare Parameters**
-
-   Gather the following information:
+   Collect the following information:
    - RDS database port
    - Environment tag
    - VPC ID
    - Security Group ID
    - VPC CIDR block
    - KMS key ARN for Secrets Manager
-   - Two private subnet IDs
+   - Private subnet IDs (2)
    - RDS instance identifier
    - RDS cluster ARN
 
-2. **Launch CloudFormation Stack**
+3. **Deploy the CloudFormation Stack**
 
-   a. Open the AWS Management Console and navigate to CloudFormation.
-   b. Click "Create stack" and choose "With new resources (standard)".
-   c. Select "Upload a template file" and upload the template linked above.
-   d. Click "Next".
+   Use the AWS CLI or CloudFormation console to deploy the stack:
 
-3. **Specify Stack Details**
+   ```bash
+   aws cloudformation create-stack \
+     --stack-name rds-secrets-rotation \
+     --template-url https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/secrets-manager/secrets-manager-template.yml \
+     --parameters ParameterKey=pRdsDbPort,ParameterValue=3306 \
+                  ParameterKey=pEnvironmentTag,ParameterValue=production \
+                  ParameterKey=pVpcId,ParameterValue=vpc-xxxxxxxx \
+                  ParameterKey=pSecurityGroupID,ParameterValue=sg-xxxxxxxx \
+                  ParameterKey=pVpcCidr,ParameterValue=10.0.0.0/16 \
+                  ParameterKey=pKmsARN,ParameterValue=arn:aws:kms:region:account:key/xxxxxxxx \
+                  ParameterKey=pPrivsubnetA,ParameterValue=subnet-xxxxxxxx \
+                  ParameterKey=pPrivsubnetB,ParameterValue=subnet-yyyyyyyy \
+                  ParameterKey=pRdsInstanceIdentifier,ParameterValue=mydb-instance \
+                  ParameterKey=pRDSDBARN,ParameterValue=arn:aws:rds:region:account:cluster:mydb-cluster \
+     --capabilities CAPABILITY_IAM
+   ```
 
-   Enter a stack name and fill in the parameters with the values you gathered in step 1.
+   Replace the parameter values with your specific details.
 
-4. **Configure Stack Options**
+4. **Monitor Stack Creation**
 
-   Add any tags, permissions, or advanced options as needed. Click "Next".
+   Track the stack creation process in the CloudFormation console or using the AWS CLI:
 
-5. **Review**
+   ```bash
+   aws cloudformation describe-stacks --stack-name rds-secrets-rotation
+   ```
 
-   Review your configuration. Check the acknowledgment for IAM resource creation if prompted.
+5. **Verify Resources**
 
-6. **Create Stack**
+   Once the stack is created, verify the following in the AWS Console:
+   - Secrets Manager secret for the database
+   - Lambda function for rotation
+   - IAM roles and policies
+   - VPC endpoint for Secrets Manager
 
-   Click "Create stack" to begin the deployment process.
+6. **Test Secret Rotation**
 
-7. **Monitor Progress**
+   Manually trigger a rotation in Secrets Manager to ensure everything is working correctly.
 
-   Watch the "Events" tab in the CloudFormation console for progress and any potential errors.
+7. **Update Application Configuration**
 
-8. **Verify Resources**
+   If necessary, update your application to use Secrets Manager for retrieving database credentials.
 
-   Once the stack creation is complete, verify that all resources have been created successfully:
-   - Check Secrets Manager for the new secret
-   - Verify the Lambda function for rotation exists
-   - Confirm the IAM roles and policies are in place
-   - Ensure the VPC endpoints are created
+### Post-Deployment
 
-## Post-Deployment
+- Monitor the first automatic rotation to ensure it completes successfully.
+- Review CloudWatch Logs for the Lambda function to troubleshoot any issues.
+- Consider setting up CloudWatch Alarms for failed rotations.
 
-- The secret will be automatically rotated every 60 days.
-- You can manually rotate the secret through the Secrets Manager console if needed.
-- Monitor CloudWatch Logs for the Lambda function to ensure rotations are successful.
-
-## Troubleshooting
-
-- If the stack creation fails, check the "Events" tab for error messages.
-- Ensure all prerequisite resources (VPC, subnets, etc.) exist and are correctly specified.
-- Verify that the IAM user or role executing the template has sufficient permissions.
-
-## Security Best Practices
-
-- Regularly audit who has access to the secrets and rotation lambda function.
-- Use AWS CloudTrail to monitor access to Secrets Manager.
-- Consider implementing additional monitoring and alerting for failed rotations.
-
-## Customization
-
-To modify the template:
-1. Download the template file.
-2. Make necessary changes (e.g., adjusting rotation schedule, permissions).
-3. Validate the modified template using CloudFormation Designer or `aws cloudformation validate-template`.
-4. Deploy the updated template following the steps above.
-
-Always test changes in a non-production environment before applying to production systems.
+By following this guide, you'll successfully deploy a robust secret rotation mechanism for your RDS database, enhancing your overall security posture and simplifying credential management.

@@ -29,39 +29,30 @@ The template sets up the following resources:
 
 ## Resources Created
 
-- EC2 Security Group
-- IAM Role and Policy
-- Secrets Manager Secret
-- Secret Target Attachment
-- Secret Rotation Schedule
-- Lambda Function (via SAM application)
-- Lambda Invoke Permission
+- `ClusterSecurityGroup`: Security group for RDS access
+- `iamLambdaRole`: IAM role for Lambda execution
+- `iamLambdaPolicy`: IAM policy attached to Lambda role
+- `DBSecretsManagerSecret`: Secrets Manager secret for DB credentials
+- `DBSecretsManagerSecretAttachment`: Attaches secret to RDS instance
+- `DBSecretsManagerSecretRotation`: Sets up secret rotation schedule
+- `SecretsManagerVPCEndpointIngress`: Security group ingress rule for Secrets Manager VPC endpoint
+- `DBSecretsManagerSecretRotationFunction`: Lambda function for secret rotation (SAM application)
+- `DBSecretsManagerLambdaInvokePermission`: Lambda invoke permission for Secrets Manager
 
 ## Usage
 
 1. Ensure you have the necessary parameter values ready.
-2. Deploy the template using AWS CloudFormation.
-3. The template will create the required resources and set up automated secret rotation.
+2. Deploy the CloudFormation template in your AWS account.
+3. The template will create the resources and set up automated secret rotation.
 
 ## Notes
 
-- The template uses the AWS Serverless Application Model (SAM) to deploy the rotation Lambda function.
-- Secret rotation is scheduled to occur automatically every 60 days.
-- Make sure the specified VPC, subnets, and security groups exist and are correctly configured.
+- This template uses the AWS Serverless Application Model (SAM) to deploy the rotation Lambda function.
+- The rotation schedule is set to 60 days by default.
+- Make sure the VPC, subnets, and security groups specified in the parameters exist and are correctly configured.
 
 ## Security Considerations
 
 - The template uses a KMS key for encrypting secrets. Ensure proper key management.
 - IAM roles and policies are scoped to minimum required permissions.
-- VPC endpoints are used to enhance security for Secrets Manager access.
-
-## Customization
-
-You can modify the template to adjust:
-
-- Rotation schedule
-- IAM permissions
-- Security group rules
-- Secret string generation parameters
-
-Always review and test changes before deploying to production environments.
+- VPC endpoint is used for secure communication with Secrets Manager within the VPC.

@@ -1,103 +1,85 @@
 ---
 layout: page
-title:  Deploying OpenVPN Server on AWS using CloudFormation
+title:  Deploying an OpenVPN Server on AWS Using CloudFormation
 permalink: /remediation-guides/ec2-openvpn/
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  Deploying OpenVPN Server on AWS using CloudFormation
+#  Deploying an OpenVPN Server on AWS Using CloudFormation
 
-This guide will walk you through deploying an OpenVPN server on AWS using a CloudFormation template.
+## Benefits of Deployment
 
-## Template Link
+Deploying an OpenVPN server using this CloudFormation template offers several advantages:
 
-The CloudFormation template can be found here: [EC2 OpenVPN Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/ec2-openvpn.yml)
+1. **Quick and Easy Setup**: Rapidly deploy a fully configured OpenVPN server without manual installation steps.
+2. **Cost-Effective**: Utilizes ARM64 (Graviton) processors, which can provide better price-performance compared to x86 instances.
+3. **Secure Configuration**: Includes pre-configured security groups and IAM roles for enhanced security.
+4. **Scalability**: Easily adjustable instance types to match your performance needs.
+5. **High Availability**: Optional auto-recovery feature ensures your VPN server stays operational.
+6. **Monitoring Integration**: Optional DataDog monitoring tag for seamless integration with your existing monitoring setup.
+7. **Customizable**: Easily modifiable to suit specific requirements or organizational standards.
 
-## Prerequisites
+## Deployment Guide
 
-Before you begin, ensure you have:
+### Prerequisites
 
-1. An AWS account with necessary permissions
-2. Basic knowledge of AWS CloudFormation
-3. Access to the AWS Management Console
+- An AWS account with appropriate permissions to create CloudFormation stacks and associated resources.
+- A VPC and subnet where you want to deploy the OpenVPN server.
+- An EC2 key pair for secure access to the instance.
 
-## Deployment Steps
+### Deployment Steps
 
-1. **Access CloudFormation**
-   - Log in to the AWS Management Console
-   - Navigate to the CloudFormation service
+1. **Access the Template**
+   
+   Download or copy the CloudFormation template from the following link:
+   [OpenVPN Server CloudFormation Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/ec2-openvpn.yml)
 
-2. **Create a New Stack**
-   - Click on "Create stack"
-   - Choose "With new resources (standard)"
+2. **Launch CloudFormation Stack**
+   
+   - Open the AWS CloudFormation console.
+   - Click "Create stack" and choose "With new resources (standard)".
+   - Upload the template file or provide the template URL.
 
-3. **Specify Template**
-   - Select "Upload a template file"
-   - Click "Choose file" and upload the template from your local machine
-   - Click "Next"
+3. **Configure Stack Parameters**
+   
+   Fill in the required parameters:
+   - VPC ID and CIDR
+   - EC2 instance type (t4g.micro or t4g.small recommended)
+   - EC2 key pair name
+   - Subnet ID for deployment
+   - OpenVPN admin password
+   - Enable/disable EC2 auto-recovery
+   - Enable/disable DataDog monitoring
+   - Environment tag
 
-4. **Specify Stack Details**
-   - Enter a Stack name
-   - Fill in the required parameters:
-     - VPC ID and CIDR
-     - EC2 instance type (t4g.micro or t4g.small)
-     - EC2 key pair
-     - Subnet ID
-     - OpenVPN admin password
-     - Environment tag
-     - Enable/disable EC2 auto-recovery
-     - Enable/disable DataDog monitoring tag
-   - Click "Next"
+4. **Review and Create Stack**
+   
+   - Review the stack details and estimated costs.
+   - Acknowledge that the stack might create IAM resources.
+   - Click "Create stack" to initiate the deployment.
 
-5. **Configure Stack Options**
-   - Add any additional tags if needed
-   - Set advanced options as required
-   - Click "Next"
+5. **Monitor Stack Creation**
+   
+   - Wait for the stack creation to complete. This typically takes a few minutes.
+   - If any issues occur, check the "Events" tab for error messages.
 
-6. **Review**
-   - Review all the details
-   - Check the acknowledgment box at the bottom
-   - Click "Create stack"
+6. **Access OpenVPN Server**
+   
+   - Once the stack creation is complete, go to the "Outputs" tab.
+   - Note the "OpenVPN Server URL" value. This is the Elastic IP address assigned to your server.
+   - Use this URL to access the OpenVPN Access Server admin interface.
 
-7. **Monitor Deployment**
-   - Wait for the stack creation to complete
-   - This may take several minutes
+7. **Configure OpenVPN Clients**
+   
+   - Log in to the OpenVPN Access Server admin interface using the password you specified during stack creation.
+   - Follow the OpenVPN documentation to set up and distribute client configurations.
 
-8. **Access Outputs**
-   - Once the stack is created, go to the "Outputs" tab
-   - Note down the OpenVPN Server URL
+### Post-Deployment Steps
 
-## Post-Deployment
+1. **Security Hardening**: Review and adjust the security group rules if necessary.
+2. **Monitoring Setup**: If you enabled DataDog monitoring, ensure your DataDog agent is properly configured.
+3. **Backup Planning**: Consider setting up regular backups of your OpenVPN configuration.
+4. **Update Management**: Plan for regular updates of the Ubuntu OS and OpenVPN software.
 
-1. **Access OpenVPN Server**
-   - Use the OpenVPN Server URL from the outputs
-   - Log in with the admin credentials you specified
-
-2. **Configure OpenVPN**
-   - Follow OpenVPN documentation to complete the setup
-   - Configure users, certificates, and other settings as needed
-
-3. **Security Considerations**
-   - Ensure that only necessary ports are open (UDP 1194, TCP 943, TCP 443)
-   - Regularly update the EC2 instance and OpenVPN software
-
-## Customization
-
-To customize the deployment:
-- Modify the CloudFormation template
-- Adjust parameters or add new ones as needed
-- Update the EC2 instance type or other resources as required
-
-## Troubleshooting
-
-If you encounter issues:
-- Check the CloudFormation events for error messages
-- Verify that all parameters are correctly entered
-- Ensure your AWS account has the necessary permissions
-
-## Version Information
-
-Current template version: ec2-openvpn-ubuntu-arm64-v2.1
-
-Remember to check for updates to the template regularly for new features and security improvements.
+By following this guide, you'll have a fully functional OpenVPN server deployed on AWS, ready to secure your remote access needs.

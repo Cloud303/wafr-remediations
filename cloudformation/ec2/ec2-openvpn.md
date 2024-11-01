@@ -6,46 +6,52 @@ This CloudFormation template deploys an OpenVPN server running on Ubuntu 22.04 u
 
 - Deploys OpenVPN Access Server on an EC2 instance
 - Uses Ubuntu 22.04 ARM64 AMI  
-- Supports t4g.micro and t4g.small instance types
-- Creates necessary security group, IAM role and instance profile
-- Mounts an EBS volume for OpenVPN data persistence
-- Configures OpenVPN with basic settings
+- Configurable instance type (t4g.micro or t4g.small)
+- Creates necessary security group for OpenVPN access
+- Assigns Elastic IP for static public IP
 - Optional EC2 auto-recovery via CloudWatch alarms
-- Tagging support including optional DataDog monitoring tag
+- Configurable environment tagging
+- Optional DataDog monitoring tag
 
 ## Parameters
 
-The template requires the following parameters:
+The template accepts the following parameters:
 
 - VPC ID and CIDR
-- EC2 instance type, key pair, and subnet 
+- EC2 instance type  
+- EC2 key pair name
+- Subnet ID for deployment
 - OpenVPN admin password
-- Environment tag
 - Enable/disable EC2 auto-recovery
-- Enable/disable DataDog monitoring tag
+- Enable/disable DataDog monitoring
+- Environment tag
 
 ## Usage
 
 1. Upload the template to CloudFormation
-2. Provide required parameter values
+2. Provide values for the required parameters 
 3. Create the stack
-4. Access the OpenVPN server using the URL in the stack outputs
+4. Once complete, access the OpenVPN server via the Elastic IP output
+
+## Security
+
+- EC2 instance has termination protection enabled
+- Security group allows only necessary inbound traffic
+- IAM role with SSM permissions attached to EC2 instance
+
+## Customization
+
+The template can be customized by modifying the following:
+
+- EC2 instance type options
+- EBS volume sizes
+- OpenVPN configuration options in UserData
 
 ## Outputs
 
 - OpenVPN Instance ID
 - OpenVPN Server URL 
-- Template Version
-
-## Security
-
-- Restricts access to OpenVPN ports (UDP 1194, TCP 943, TCP 443)
-- Uses IAM role for EC2 instance
-- Disables API termination protection on EC2 instance
-
-## Customization
-
-The template can be customized by modifying the CloudFormation resources and parameters as needed.
+- Template version
 
 ## Version
 

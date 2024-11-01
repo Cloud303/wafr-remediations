@@ -1,87 +1,55 @@
 ---
 layout: page
-title:  Deploying EC2 Key Pair Generator
+title:  Deploying EC2 Key Pair Using CloudFormation
 permalink: /remediation-guides/ec2-keypair/
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  Deploying EC2 Key Pair Generator
+#  Deploying EC2 Key Pair Using CloudFormation
 
-This guide will walk you through the process of deploying the EC2 Key Pair Generator CloudFormation template.
+This guide will walk you through deploying an EC2 Key Pair using a CloudFormation template. By using this template, you can easily create and manage EC2 Key Pairs across your AWS environments.
 
-## Prerequisites
+## Benefits of Deploying This Template
 
-- AWS account with necessary permissions
-- Access to AWS CloudFormation console or AWS CLI
-
-## Template
-
-The CloudFormation template can be found here:
-[EC2 Key Pair Generator Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/ec2-keypair.yml)
+1. **Automation**: Streamlines the process of creating EC2 Key Pairs, reducing manual effort and potential errors.
+2. **Consistency**: Ensures a standardized approach to key pair creation across different environments.
+3. **Security**: Automatically stores the private key in AWS Systems Manager Parameter Store, enhancing security.
+4. **Traceability**: Provides clear documentation of key pair creation through CloudFormation stack resources.
+5. **Easy Management**: Simplifies the process of updating or deleting key pairs through stack updates or deletion.
 
 ## Deployment Steps
 
-1. **Access CloudFormation**
-   - Log in to your AWS account
-   - Navigate to the CloudFormation service
+1. Access the CloudFormation template [here](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/ec2-keypair.yml).
 
-2. **Create New Stack**
-   - Click on "Create stack"
-   - Choose "With new resources (standard)"
+2. Log in to your AWS Console and navigate to the CloudFormation service.
 
-3. **Specify Template**
-   - Select "Upload a template file"
-   - Click "Choose file" and select the downloaded template
-   - Click "Next"
+3. Click on "Create stack" and choose "With new resources (standard)".
 
-4. **Specify Stack Details**
-   - Enter a Stack name
-   - Set parameters:
-     - `pKeyPairName`: Enter desired name (format: `<CLIENT NAME>-<ENVIRONMENT>-<YYYY-MM-DD>`)
-     - `pEnvironmentTag`: Choose from allowed values (production, staging, sandbox, test, development, qa, dr)
-   - Click "Next"
+4. Select "Upload a template file" and upload the downloaded template.
 
-5. **Configure Stack Options**
-   - Add any tags if required
-   - Set permissions if necessary
-   - Click "Next"
+5. Click "Next" to proceed to the stack details page.
 
-6. **Review**
-   - Review all the details
-   - Check the acknowledgment for IAM resources if prompted
-   - Click "Create stack"
+6. Enter a stack name of your choice.
 
-7. **Monitor Creation**
-   - Wait for the stack creation to complete
-   - Check the "Events" tab for progress and any errors
+7. Provide values for the parameters:
+   - `pKeyPairName`: Specify a name for your EC2 Key Pair (default format: `<CLIENT NAME>-<ENVIRONMENT>-<YYYY-MM-DD>`)
+   - `pEnvironmentTag`: Choose the appropriate environment tag from the allowed values
 
-8. **Access Key Pair**
-   - Once complete, the private key will be stored in Systems Manager Parameter Store
-   - Path: `/ec2/keypair/key-*`
+8. Click "Next" to proceed through the stack options.
+
+9. Review the stack details and acknowledge any capabilities if prompted.
+
+10. Click "Create stack" to initiate the deployment.
+
+11. Wait for the stack creation to complete. You can monitor the progress in the "Events" tab.
+
+12. Once complete, the EC2 Key Pair will be created and the private key stored in Parameter Store.
 
 ## Post-Deployment
 
-- Ensure proper IAM permissions are set to restrict access to the parameter in Systems Manager
-- The template version (ec2-keypair-v1.0) can be found in the Outputs section of the stack
+- The private key can be accessed from the Parameter Store at `/ec2/keypair/key-*`.
+- Ensure proper IAM permissions are set for accessing the private key in Parameter Store.
+- The template version `ec2-keypair-v1.0` can be found in the stack outputs for reference.
 
-## Updating the Key Pair
-
-To update the key pair:
-1. Delete the existing CloudFormation stack
-2. Follow the deployment steps again with a new key pair name
-
-## Security Considerations
-
-- Limit access to the private key stored in Parameter Store
-- Regularly rotate key pairs for enhanced security
-- Monitor and audit access to the key pair and related resources
-
-## Troubleshooting
-
-If you encounter issues:
-- Check CloudFormation events for error messages
-- Verify IAM permissions
-- Ensure parameter values are within allowed ranges
-
-For further assistance, consult AWS documentation or contact support.
+By following this guide, you can efficiently deploy and manage EC2 Key Pairs using CloudFormation, enhancing your AWS infrastructure management capabilities.

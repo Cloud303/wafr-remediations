@@ -1,4 +1,4 @@
-#  KMS Keys CloudFormation Template
+#  AWS KMS Keys CloudFormation Template
 
 This CloudFormation template creates KMS (Key Management Service) keys for encrypting resources across various AWS services.
 
@@ -18,17 +18,17 @@ The template includes the following parameters to control key creation:
 - `pCreateKmsS3Key`: Create KMS key for S3
 - `pCreateKmsSsmKey`: Create KMS key for Systems Manager
 - `pCreateKmsEcKey`: Create KMS key for ElastiCache
-- `pCreateKmsEsKey`: Create KMS key for Elasticsearch  
+- `pCreateKmsEsKey`: Create KMS key for Elasticsearch
 - `pCreateKmsCwKey`: Create KMS key for CloudWatch Logs
 - `pCreateKmsTimeStreamKey`: Create KMS key for Timestream
 
 All parameters are of type String and accept `true` or `false` values.
 
-## Resources Created
+## Resources
 
 The template creates the following resources based on the parameter values:
 
-- KMS keys for selected services
+- KMS keys for enabled services
 - KMS key aliases 
 - IAM managed policies for S3 and SSM keys
 
@@ -43,7 +43,7 @@ The template outputs the following:
 ## Usage
 
 1. Upload the template to CloudFormation
-2. Specify the desired parameter values to create keys for selected services
+2. Specify the desired parameter values to enable/disable key creation for different services
 3. Create the stack
 4. Use the exported key and policy ARNs in other templates or applications
 

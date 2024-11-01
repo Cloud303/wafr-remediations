@@ -1,97 +1,68 @@
 ---
 layout: page
-title:  Deploying AWS Security Tools CloudFormation Template
-permalink: /cloud303-aws-security-tools/
+title:  Deploying AWS Security Tools with CloudFormation
+permalink: /remediation-guides/cloud303-aws-security-tools/
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  Deploying AWS Security Tools CloudFormation Template
+#  Deploying AWS Security Tools with CloudFormation
 
-This guide will walk you through the process of deploying a comprehensive set of AWS security tools using a CloudFormation template.
+This guide will walk you through deploying a comprehensive set of AWS security tools and configurations using a CloudFormation template. By deploying these resources, you'll significantly enhance the security posture of your AWS account.
 
-## Template Link
+## Benefits of Deployment
 
-The CloudFormation template can be found here: [AWS Security Tools Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/security-tools/cloud303-aws-security-tools.yml)
+- **Comprehensive Security Coverage**: Enables key AWS security services across your account, including CloudTrail, Config, GuardDuty, Inspector, and IAM Access Analyzer.
+- **Centralized Logging**: Sets up encrypted logging and monitoring for security events and configuration changes.
+- **Automated Compliance**: Helps meet compliance requirements with options for HIPAA settings.
+- **Threat Detection**: Implements advanced threat detection with GuardDuty and optional malware protection.
+- **Customizable**: Allows fine-tuning of security settings through template parameters.
+- **Consistent Configuration**: Ensures a standardized security setup across your AWS environment.
 
-## Deployment Steps
+## Deployment Guide
 
-1. **Access AWS CloudFormation**
-   - Log in to your AWS Management Console
-   - Navigate to the CloudFormation service
+1. **Access the Template**
+   
+   The CloudFormation template can be found at:
+   [https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/security-tools/cloud303-aws-security-tools.yml](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/security-tools/cloud303-aws-security-tools.yml)
 
-2. **Create a New Stack**
-   - Click on "Create stack"
-   - Choose "With new resources (standard)"
+2. **Prepare for Deployment**
+   - Review the README for a full list of features and resources that will be created.
+   - Ensure you have the necessary permissions to create the resources in your AWS account.
 
-3. **Specify Template**
-   - Select "Upload a template file"
-   - Click "Choose file" and upload the template from your local machine
-   - Alternatively, you can use the template URL provided above
+3. **Launch the CloudFormation Stack**
+   - Navigate to the AWS CloudFormation console.
+   - Choose "Create stack" and select "With new resources (standard)".
+   - Choose "Upload a template file" and select the downloaded template.
 
-4. **Specify Stack Details**
-   - Enter a stack name (e.g., "AWS-Security-Tools")
-   - Fill in the parameters as described below:
+4. **Configure Stack Parameters**
+   - Fill in the parameters according to your security requirements. Key areas include:
+     - GuardDuty settings
+     - Config settings
+     - CloudTrail settings
+     - Inspector settings
+     - IAM Access Analyzer settings
+     - Email for security notifications
+     - Environment tag
 
-### Parameters
+5. **Review and Create Stack**
+   - Review the stack details and acknowledge any capabilities required.
+   - Click "Create stack" to begin the deployment.
 
-#### GuardDuty Settings
-- `pEnableGuardDuty`: Choose whether to enable GuardDuty account-wide (true/false)
-- `pGuardDutyPublishFrequency`: Set the findings delivery frequency
-- `pGuardDutyMalwareProtection`: Decide if you want to enable GuardDuty Malware Protection (true/false)
+6. **Monitor Deployment**
+   - The stack creation process may take several minutes.
+   - Monitor the "Events" tab for any issues during deployment.
 
-#### Config Settings
-- `pEnableConfig`: Choose to enable Config in the deployed region (true/false/AutoDetect)
-- `pCreateConfigAll`: Decide if you want to create all Config resources (true/false)
-- `pConfigDeliveryFrequency`: Set the configuration snapshot delivery frequency
+7. **Verify Outputs**
+   - Once the stack creation is complete, check the "Outputs" tab for confirmation of successful resource creation and configuration.
 
-#### CloudTrail Settings
-- `pEnableCloudtrail`: Choose to enable CloudTrail in all regions (true/false)
-- `pLogGroupRetention`: Set the CloudWatch Log Group retention period in days
-- `pHipaaClient`: Enable HIPAA compliance settings if required (true/false)
+8. **Post-Deployment Steps**
+   - Verify that all selected services are enabled and configured correctly in their respective AWS consoles.
+   - Test any notification settings to ensure alerts are being sent to the specified email.
+   - Review and customize any additional settings as needed for your specific environment.
 
-#### Inspector Settings
-- `pEnableInspector`: Choose to enable Inspector notifications (true/false)
-- `pEnableInspectorExport`: Decide if you want to enable Inspector findings export to S3 (true/false)
+9. **Ongoing Management**
+   - Regularly review the security findings and alerts generated by the deployed tools.
+   - Update the stack as needed to adjust settings or enable additional features.
 
-#### IAM Access Analyzer Settings
-- `pEnableAccessAnalyzer`: Choose to enable IAM Access Analyzer (true/false)
-
-#### Other Settings
-- `pSecurityEmailEndpoint`: Enter an email for security notifications
-- `pEnvironmentTag`: Set the environment tag (production/development)
-
-5. **Configure Stack Options**
-   - Add any tags if needed
-   - Configure advanced options if required
-
-6. **Review**
-   - Review all the details you've entered
-   - Acknowledge that the template might create IAM resources
-
-7. **Create Stack**
-   - Click "Create stack" to start the deployment process
-
-8. **Monitor Progress**
-   - Watch the stack creation progress in the "Events" tab
-   - This process may take several minutes to complete
-
-9. **Check Outputs**
-   - Once the stack creation is complete, go to the "Outputs" tab
-   - Here you'll find important information such as:
-     - Status of enabled services (GuardDuty, Inspector, Access Analyzer, Config, CloudTrail)
-     - S3 bucket names for CloudTrail and Config logs
-     - CloudTrail Log Group name
-     - Template version
-
-## Post-Deployment
-
-- Review the IAM permissions and S3 bucket policies created by this template
-- Ensure all services are running as expected
-- Set up any additional monitoring or alerting based on the newly deployed security tools
-
-## Notes
-
-- Some resources are conditionally created based on the parameter values you provided
-- If you enabled HIPAA compliance settings, ensure your AWS account is approved for HIPAA workloads
-- Regularly review and update your security settings as needed
+By following this guide, you'll have deployed a robust set of security tools and configurations to protect your AWS environment. Remember to continually monitor and adjust your security posture as your needs evolve.

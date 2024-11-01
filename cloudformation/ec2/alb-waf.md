@@ -4,19 +4,19 @@ This CloudFormation template creates an Application Load Balancer (ALB) with opt
 
 ## Features
 
-- Creates an internet-facing or internal ALB
-- Configures HTTP to HTTPS redirection 
-- Integrates with AWS WAF (optional)
-- Supports sticky sessions on target groups
-- Configures ALB access logging to S3
-- Applies custom tags including DataDog monitoring tag
+- Creates either an internet-facing or internal ALB
+- Configurable HTTP to HTTPS redirection 
+- Optional WAF integration with XSS and SQL injection protection
+- ALB access logging to S3
+- Configurable target group with health checks and sticky sessions
+- Supports DataDog monitoring integration
 
 ## Parameters
 
 ### ALB Settings
 
 - `pAlbName` - Name of the ALB
-- `pAlbType` - Internal or Internet-Facing ALB
+- `pAlbType` - Internal or internet-facing ALB
 - `pAlbDeletionProtection` - Enable deletion protection
 - `pCreateHttpsListener` - Create HTTPS listener
 - `pAcmCertArn` - ACM certificate ARN for HTTPS
@@ -35,32 +35,32 @@ This CloudFormation template creates an Application Load Balancer (ALB) with opt
 
 ### WAF Settings
 
-- `pEnableWaf` - Enable WAF integration
+- `pEnableWaf` - Enable WAF
 - `pOdooAlb` - Odoo-specific WAF rules
 
 ### Other Settings
 
 - Network configuration (VPC, subnets)
-- Environment tag
+- Environment tagging
+- DataDog monitoring option
 
 ## Resources Created
 
 - Application Load Balancer
 - Target Group
-- Listeners and Rules
 - Security Group
 - S3 Bucket for ALB logs
 - WAF Web ACL (if enabled)
-
-## Outputs
-
-- ALB DNS Name
-- Template Version
+- WAF rules for SQL injection and XSS protection
 
 ## Usage
 
-1. Upload template to CloudFormation
-2. Specify parameter values
-3. Create stack
+1. Upload the template to CloudFormation
+2. Provide values for the required parameters
+3. Create the stack
 
-The ALB will be created with the specified configuration and optional WAF integration.
+The ALB DNS name will be provided in the stack outputs.
+
+## Version
+
+alb-waf-0.4

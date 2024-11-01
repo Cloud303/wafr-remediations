@@ -1,90 +1,78 @@
 ---
 layout: page
 title:  Deploying AWS Budget CloudFormation Template
-permalink: /budgets/
+permalink: /remediation-guides/budgets/
 resource: true
 categories: [Remediation Guides]
 ---
 
 #  Deploying AWS Budget CloudFormation Template
 
-This guide will walk you through the process of deploying an AWS Budget using the CloudFormation template provided. This template creates a budget with email notifications for cost management in your AWS account.
+## Benefits of Deploying This Template
 
-## Template Link
+Deploying the AWS Budget CloudFormation template offers several key advantages for managing your AWS costs:
 
-You can find the CloudFormation template here: [AWS Budget Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/monitoring/budgets.yml)
+1. **Automated Cost Control**: Set up budgets easily to monitor and control your AWS spending.
+2. **Customizable Alerts**: Receive timely notifications when your costs approach or exceed defined thresholds.
+3. **Flexible Budgeting**: Choose from monthly, quarterly, or annual budget cycles to suit your financial planning.
+4. **Comprehensive Cost Tracking**: The budget includes various cost types, ensuring a holistic view of your AWS expenses.
+5. **Easy Implementation**: Quickly deploy standardized budgeting across multiple accounts or projects using CloudFormation.
 
-## Deployment Steps
+## Deployment Guide
 
-### 1. Access AWS CloudFormation
+### Prerequisites
+- AWS account with permissions to create CloudFormation stacks and AWS Budgets
+- Basic understanding of AWS CloudFormation
 
-- Log in to your AWS Management Console
-- Navigate to the CloudFormation service
+### Steps to Deploy
 
-### 2. Create a New Stack
+1. **Access the Template**
+   - Download the CloudFormation template from [this GitHub link](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/monitoring/budgets.yml).
 
-- Click on "Create stack"
-- Choose "With new resources (standard)"
+2. **Navigate to AWS CloudFormation**
+   - Log into your AWS Console and go to the CloudFormation service.
 
-### 3. Specify Template
+3. **Create a New Stack**
+   - Click on "Create stack" and choose "With new resources (standard)".
 
-- Select "Upload a template file"
-- Click "Choose file" and upload the downloaded template
-- Click "Next"
+4. **Specify Template**
+   - Select "Upload a template file".
+   - Click "Choose file" and upload the downloaded template.
+   - Click "Next".
 
-### 4. Specify Stack Details
+5. **Specify Stack Details**
+   - Enter a Stack name (e.g., "AWS-Budget-Alarm").
+   - Fill in the parameters:
+     - `pAmount`: Set your desired budget amount in USD.
+     - `pTimeUnit`: Choose MONTHLY, QUARTERLY, or ANNUALLY.
+     - `pNotificationThreshold`: Set the percentage threshold for notifications (default is 80).
+     - `pNotificationEmail`: Enter the email address for receiving notifications.
+   - Click "Next".
 
-- Enter a Stack name (e.g., "AWS-Budget-Monitoring")
-- Fill in the parameters:
-  - **pAmount**: Enter the budget amount
-  - **pTimeUnit**: Choose MONTHLY, QUARTERLY, or ANNUALLY (default is MONTHLY)
-  - **pNotificationThreshold**: Enter the threshold percentage for notifications (default is 80)
-  - **pNotificationEmail**: Enter the email address for notifications
-- Click "Next"
+6. **Configure Stack Options**
+   - Add any tags if needed (optional).
+   - Set advanced options if required (optional).
+   - Click "Next".
 
-### 5. Configure Stack Options
+7. **Review**
+   - Review all the details you've entered.
+   - Check the acknowledgment box at the bottom if it appears (regarding IAM resources).
+   - Click "Create stack".
 
-- Add any tags if needed (optional)
-- Set permissions if required (optional)
-- Click "Next"
+8. **Monitor Creation**
+   - Wait for the stack creation to complete. This usually takes a few minutes.
+   - Once the status shows "CREATE_COMPLETE", your budget is set up.
 
-### 6. Review
+9. **Verify Budget**
+   - Go to the AWS Billing Console.
+   - Navigate to "Budgets" to see your newly created budget.
 
-- Review all the details
-- Check the acknowledgment box at the bottom if it appears
-- Click "Create stack"
+### Post-Deployment Steps
 
-### 7. Monitor Stack Creation
+1. **Confirm Email Subscription**: Check the email address you provided and confirm the subscription to receive budget notifications.
 
-- Wait for the stack creation to complete
-- You can monitor the progress in the "Events" tab
+2. **Test Notifications**: You can temporarily lower the budget amount to test if notifications are working correctly.
 
-### 8. Verify Budget Creation
+3. **Monitor and Adjust**: Regularly review your budget settings and adjust as needed based on your AWS usage patterns.
 
-- Once the stack creation is complete, go to the AWS Budgets console
-- Verify that the new budget appears with the specified parameters
-
-### 9. Test Notifications
-
-- To test the notification system, you can temporarily lower the threshold or the budget amount
-- Ensure that you receive an email notification when the threshold is crossed
-
-## Post-Deployment
-
-- Monitor your AWS Budgets dashboard regularly
-- Adjust the budget amount or notification threshold as needed by updating the stack
-
-## Troubleshooting
-
-- If stack creation fails, check the "Events" tab for error messages
-- Ensure you have the necessary permissions to create budgets and CloudFormation stacks
-- Verify that the email address for notifications is correct and can receive AWS notifications
-
-## Customization
-
-To customize the budget further:
-- Modify the template to include additional notification types
-- Adjust the cost types included in the budget calculation
-- Change the budget type if needed
-
-Remember to version control any changes you make to the template for future reference and deployments.
+By following these steps, you'll successfully deploy an AWS Budget using the provided CloudFormation template, enabling effective cost management and monitoring for your AWS resources.
