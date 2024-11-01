@@ -15,28 +15,35 @@ This template allows you to set up a budget in AWS Billing and Cost Management, 
 | pNotificationThreshold | Budget threshold percentage for notification | 80 | String |
 | pNotificationEmail | Email address for notifications | - | String |
 
-## Resources Created
+## Resources
 
-- AWS::Budgets::Budget: Creates a budget with specified parameters
+The template creates the following AWS resource:
 
-## Outputs
-
-- Version: Displays the template version (budgets-0.1)
+- **AWS::Budgets::Budget**: Sets up a budget with specified limits and notification rules.
 
 ## Usage
 
-1. Upload the template to CloudFormation
-2. Provide values for the required parameters:
-   - pAmount: Set your budget amount in USD
-   - pTimeUnit: Choose MONTHLY, QUARTERLY, or ANNUALLY
-   - pNotificationThreshold: Set percentage threshold for notifications
-   - pNotificationEmail: Provide email address for notifications
-3. Create the stack
+1. Upload the template to CloudFormation or use it with AWS CLI.
+2. Provide values for the required parameters.
+3. Create the stack.
 
-The template will create a budget named `<AccountID>-cloud303-billing-alarm` with the specified settings and email notifications.
+## Outputs
+
+- **Version**: Displays the template version (budgets-0.1)
 
 ## Notes
 
+- The budget is set up for the AWS account where the CloudFormation stack is created.
+- Notifications are sent via email when actual spend exceeds the specified threshold percentage.
 - The budget includes various cost types like credits, discounts, subscriptions, support, taxes, etc.
-- Notifications are set for ACTUAL spend exceeding the specified threshold percentage.
-- Make sure to have necessary permissions to create AWS Budgets in your account.
+
+## Customization
+
+You can modify the template to adjust:
+- Budget name
+- Cost types included in the budget
+- Additional notification thresholds or types
+
+## License
+
+This template is provided as-is under the MIT license.

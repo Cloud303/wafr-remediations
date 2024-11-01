@@ -4,19 +4,21 @@ This CloudFormation template creates an Application Load Balancer (ALB) with opt
 
 ## Features
 
-- Creates either an internet-facing or internal ALB
-- Configurable HTTP to HTTPS redirection 
-- Optional WAF integration with XSS and SQL injection protection
-- ALB access logging to S3
-- Configurable target group with health checks and sticky sessions
-- Supports DataDog monitoring integration
+- Creates an internet-facing or internal ALB
+- Configures HTTP to HTTPS redirection 
+- Sets up ALB logging to S3
+- Creates target groups and listener rules
+- Optionally integrates with AWS WAF
+- Supports sticky sessions
+- Configurable health checks
+- Tagging support
 
 ## Parameters
 
 ### ALB Settings
 
 - `pAlbName` - Name of the ALB
-- `pAlbType` - Internal or internet-facing ALB
+- `pAlbType` - Internal or internet-facing
 - `pAlbDeletionProtection` - Enable deletion protection
 - `pCreateHttpsListener` - Create HTTPS listener
 - `pAcmCertArn` - ACM certificate ARN for HTTPS
@@ -35,23 +37,13 @@ This CloudFormation template creates an Application Load Balancer (ALB) with opt
 
 ### WAF Settings
 
-- `pEnableWaf` - Enable WAF
+- `pEnableWaf` - Enable WAF integration
 - `pOdooAlb` - Odoo-specific WAF rules
 
-### Other Settings
+### Network Settings
 
-- Network configuration (VPC, subnets)
-- Environment tagging
-- DataDog monitoring option
-
-## Resources Created
-
-- Application Load Balancer
-- Target Group
-- Security Group
-- S3 Bucket for ALB logs
-- WAF Web ACL (if enabled)
-- WAF rules for SQL injection and XSS protection
+- VPC ID and CIDR
+- Public and private subnet IDs
 
 ## Usage
 
@@ -59,8 +51,12 @@ This CloudFormation template creates an Application Load Balancer (ALB) with opt
 2. Provide values for the required parameters
 3. Create the stack
 
-The ALB DNS name will be provided in the stack outputs.
+The template will create the ALB and associated resources based on the provided configuration.
+
+## Outputs
+
+- `ALBdnsName` - DNS name of the created ALB
 
 ## Version
 
-alb-waf-0.4
+Current template version: alb-waf-0.4

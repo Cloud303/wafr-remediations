@@ -1,90 +1,82 @@
 ---
 layout: page
-title:  Deploying a Customizable VPC with CloudFormation
+title:  VPC Deployment Guide
 permalink: /remediation-guides/vpc/
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  Deploying a Customizable VPC with CloudFormation
+#  VPC Deployment Guide
 
-This guide will walk you through deploying a highly customizable VPC using a CloudFormation template. The template creates a robust network infrastructure with public, private, and data subnets across multiple Availability Zones, along with essential networking components like NAT Gateways, an Internet Gateway, and VPC endpoints.
+This guide walks through deploying a highly configurable VPC using CloudFormation. The template creates a production-ready VPC architecture with public, private and data subnets across multiple Availability Zones.
 
-## Benefits of Deploying This VPC
+## Benefits
 
-1. **Flexibility**: Customize the VPC to fit your specific needs with configurable parameters.
-2. **High Availability**: Support for multiple Availability Zones ensures resilience.
-3. **Security**: Includes Network ACLs and VPC Flow Logs for enhanced security and monitoring.
-4. **Cost Optimization**: Optional components like NAT Gateways and VPC endpoints allow for cost control.
-5. **Scalability**: The modular design allows for easy expansion as your needs grow.
-6. **Compliance**: Helps meet various compliance requirements with isolated subnets and logging capabilities.
+- **High Availability** - Deploy across up to 4 AZs for maximum redundancy
+- **Security** - Isolated subnet tiers with Network ACLs and private networking
+- **Cost Optimization** - Only deploy the resources you need with configurable options
+- **Scalability** - Flexible CIDR ranges to accommodate future growth
+- **Operational Excellence** - Consistent networking through Infrastructure as Code
+- **Compliance** - VPC Flow Logs for network monitoring and auditing
 
-## Deployment Guide
+## Prerequisites
 
-### Step 1: Access the Template
+- AWS account with permissions to create VPC resources
+- Basic understanding of VPC networking concepts
+- [CloudFormation template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/vpc/vpc.yml)
 
-The CloudFormation template can be found at:
-[https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/vpc/vpc.yml](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/vpc/vpc.yml)
+## Deployment Steps
 
-### Step 2: Prepare for Deployment
+1. Navigate to the AWS CloudFormation console
 
-1. Review the template and understand the parameters available.
-2. Determine your requirements for:
-   - Number of Availability Zones
-   - CIDR blocks for VPC and subnets
-   - Whether you need private and data subnets
-   - VPC endpoint requirements
-   - Custom DNS settings
+2. Click "Create stack" and choose "With new resources"
 
-### Step 3: Launch the CloudFormation Stack
+3. Upload the template file or specify the template URL
 
-1. Log in to the AWS Management Console and navigate to CloudFormation.
-2. Click "Create stack" and choose "With new resources (standard)".
-3. Select "Upload a template file" and upload the template you downloaded.
-4. Click "Next" to proceed to the parameter configuration.
-
-### Step 4: Configure Stack Parameters
-
-1. Enter a stack name.
-2. Fill in the parameters according to your requirements:
-   - Number of AZs
-   - AZ names (if you have specific ones in mind)
+4. Configure the stack parameters:
+   - Number of Availability Zones (1-4)
    - VPC CIDR block
    - Subnet CIDR blocks
    - Enable/disable private and data subnets
-   - Configure DNS settings
-   - Set VPC Flow Log retention period
-   - Choose VPC endpoint options
-   - Add an Environment tag
+   - DNS settings
+   - VPC Flow Log retention
+   - VPC endpoint options
+   - Environment tag
 
-### Step 5: Configure Stack Options
+5. Review the configuration and create the stack
 
-1. Add any additional tags if needed.
-2. Set up any advanced options like stack policy or rollback configuration.
-3. Click "Next" to review.
+6. Monitor the stack creation progress
 
-### Step 6: Review and Create Stack
+7. Once complete, note the outputs for use in other templates
 
-1. Review all the settings and parameters.
-2. Acknowledge any capabilities if prompted.
-3. Click "Create stack" to begin deployment.
+## Post-Deployment
 
-### Step 7: Monitor Deployment
+- Validate subnet connectivity
+- Test NAT Gateway internet access from private subnets
+- Verify VPC endpoint access if configured
+- Review Network ACL rules
+- Configure additional security groups as needed
+- Set up monitoring for VPC Flow Logs
 
-1. Watch the stack creation progress in the CloudFormation console.
-2. Check the "Events" tab for any issues during deployment.
+## Customization
 
-### Step 8: Access Outputs
+The template can be customized by:
 
-Once the stack creation is complete:
-1. Go to the "Outputs" tab of your stack.
-2. Note down or export the important values like VPC ID, Subnet IDs, etc.
-3. These outputs can be used in other CloudFormation stacks or for manual resource creation.
+- Modifying CIDR ranges
+- Adjusting the number of AZs
+- Adding/removing subnet tiers
+- Customizing Network ACL rules
+- Enabling additional VPC endpoints
+- Changing DNS settings
 
-### Step 9: Post-Deployment Steps
+Refer to the template parameters for all available configuration options.
 
-1. Verify the created resources in the VPC, EC2, and VPC Endpoints consoles.
-2. Test connectivity between subnets if applicable.
-3. Set up any additional security groups or network ACL rules as needed.
+## Troubleshooting
 
-By following these steps, you'll have a fully functional, customized VPC ready for your applications and services. Remember to monitor your resources and adjust configurations as your needs evolve.
+Common issues:
+- CIDR range conflicts
+- Insufficient IP space
+- Missing permissions
+- NAT Gateway connectivity problems
+
+Check CloudWatch Logs and the stack events for error details.

@@ -1,58 +1,64 @@
 #  RDS Secrets Manager Rotation CloudFormation Template
 
-This CloudFormation template creates and manages secrets in AWS Secrets Manager for an RDS database, along with an automated rotation mechanism using AWS Lambda.
+This CloudFormation template creates and manages secrets in AWS Secrets Manager for RDS database credentials, along with an automated rotation mechanism using AWS Lambda.
 
 ## Overview
 
 The template sets up the following resources:
 
-- A security group for RDS access
-- IAM role and policy for Lambda execution
-- Secrets Manager secret for database credentials
-- Secret rotation schedule and Lambda function
-- VPC endpoint for Secrets Manager access
+- A Secrets Manager secret for RDS database credentials
+- A Lambda function to rotate the secret
+- IAM roles and policies for the Lambda function
+- Security group for RDS access
+- Secrets Manager rotation schedule
 
 ## Parameters
 
-| Parameter | Description |
-|-----------|-------------|
-| pRdsDbPort | RDS database port (3306, 1433, or 5432) |
-| pEnvironmentTag | Environment tag (production, staging, etc.) |
-| pVpcId | VPC ID |
-| pSecurityGroupID | Security Group ID |
-| pVpcCidr | VPC CIDR block |
-| pKmsARN | KMS key ARN for Secrets Manager |
-| pPrivsubnetA | Private subnet ID |
-| pPrivsubnetB | Private subnet ID |
-| pRdsInstanceIdentifier | RDS instance identifier |
-| pRDSDBARN | RDS cluster ARN |
+The template requires the following parameters:
+
+- `pRdsDbPort`: RDS database port (Default: 3306)
+- `pEnvironmentTag`: Environment tag for resources (e.g., production, staging)
+- `pVpcId`: VPC ID
+- `pSecurityGroupID`: Security Group ID
+- `pVpcCidr`: VPC CIDR range
+- `pKmsARN`: KMS key ARN for Secrets Manager encryption
+- `pPrivsubnetA`: Private subnet ID
+- `pPrivsubnetB`: Private subnet ID
+- `pRdsInstanceIdentifier`: RDS instance identifier
+- `pRDSDBARN`: RDS cluster ARN
 
 ## Resources Created
 
-- `ClusterSecurityGroup`: Security group for RDS access
-- `iamLambdaRole`: IAM role for Lambda execution
-- `iamLambdaPolicy`: IAM policy attached to Lambda role
-- `DBSecretsManagerSecret`: Secrets Manager secret for DB credentials
-- `DBSecretsManagerSecretAttachment`: Attaches secret to RDS instance
-- `DBSecretsManagerSecretRotation`: Sets up secret rotation schedule
-- `SecretsManagerVPCEndpointIngress`: Security group ingress rule for Secrets Manager VPC endpoint
-- `DBSecretsManagerSecretRotationFunction`: Lambda function for secret rotation (SAM application)
-- `DBSecretsManagerLambdaInvokePermission`: Lambda invoke permission for Secrets Manager
+1. `ClusterSecurityGroup`: Security group for RDS access
+2. `iamLambdaRole`: IAM role for Lambda function
+3. `iamLambdaPolicy`: IAM policy for Lambda function
+4. `DBSecretsManagerSecret`: Secrets Manager secret for database credentials
+5. `DBSecretsManagerSecretAttachment`: Attaches the secret to the RDS instance
+6. `DBSecretsManagerSecretRotation`: Sets up the rotation schedule
+7. `SecretsManagerVPCEndpointIngress`: Security group ingress rule for Secrets Manager VPC endpoint
+8. `DBSecretsManagerSecretRotationFunction`: Lambda function for secret rotation (using AWS SAM)
+9. `DBSecretsManagerLambdaInvokePermission`: Lambda invoke permission for Secrets Manager
 
 ## Usage
 
-1. Ensure you have the necessary parameter values ready.
-2. Deploy the CloudFormation template in your AWS account.
-3. The template will create the resources and set up automated secret rotation.
-
-## Notes
-
-- This template uses the AWS Serverless Application Model (SAM) to deploy the rotation Lambda function.
-- The rotation schedule is set to 60 days by default.
-- Make sure the VPC, subnets, and security groups specified in the parameters exist and are correctly configured.
+1. Deploy the CloudFormation template with the required parameters.
+2. The template will create the necessary resources for secret management and rotation.
+3. The RDS database credentials will be stored in Secrets Manager and rotated automatically every 60 days.
 
 ## Security Considerations
 
-- The template uses a KMS key for encrypting secrets. Ensure proper key management.
-- IAM roles and policies are scoped to minimum required permissions.
-- VPC endpoint is used for secure communication with Secrets Manager within the VPC.
+- Ensure that the KMS key used for encryption has the appropriate permissions.
+- Review and adjust the IAM policies as needed for your specific security requirements.
+- The template uses VPC endpoints for enhanced security. Make sure your VPC is configured correctly.
+
+## Customization
+
+You can modify the following aspects of the template:
+
+- Rotation schedule (currently set to 60 days)
+- Lambda function configuration
+- Security group rules
+
+## Dependencies
+
+This template uses the AWS Serverless Application Model (SAM) to deploy the rotation Lambda function. Ensure you have the necessary permissions to deploy SAM applications.

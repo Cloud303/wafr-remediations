@@ -1,88 +1,93 @@
 ---
 layout: page
-title:  Deploying an Application Load Balancer with WAF using CloudFormation
+title:  Deploying an Application Load Balancer with WAF Protection
 permalink: /remediation-guides/alb-waf/
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  Deploying an Application Load Balancer with WAF using CloudFormation
+#  Deploying an Application Load Balancer with WAF Protection
 
-This guide will walk you through deploying an Application Load Balancer (ALB) with optional Web Application Firewall (WAF) integration using a CloudFormation template. Deploying these resources offers several benefits:
+This guide will help you deploy an Application Load Balancer (ALB) with Web Application Firewall (WAF) protection using CloudFormation.
 
-- Improved security with WAF integration for protection against common web exploits
-- Scalable and highly available load balancing for your applications
-- Easy configuration of HTTPS and HTTP to HTTPS redirection
-- Centralized logging of ALB access logs to S3
-- Flexible health checks and sticky session options for target groups
-- Optional DataDog monitoring integration
+## Benefits
+
+- **Enhanced Security**: WAF integration protects your applications from common web exploits and attacks
+- **Simplified SSL/TLS**: Easy HTTPS configuration with ACM certificate integration
+- **Improved Monitoring**: Built-in logging to S3 for traffic analysis and troubleshooting
+- **High Availability**: Load balancing across multiple Availability Zones
+- **Flexible Routing**: Host-based routing rules for directing traffic
+- **Session Persistence**: Optional sticky sessions for stateful applications
 
 ## Prerequisites
 
-- An AWS account with necessary permissions
-- Basic understanding of AWS services (ALB, WAF, CloudFormation)
-- (Optional) An ACM certificate for HTTPS configuration
+- An AWS account with appropriate permissions
+- VPC with public and private subnets
+- EC2 instances to add as targets
+- ACM certificate (if using HTTPS)
+- S3 bucket for ALB access logs
 
 ## Deployment Steps
 
-1. **Access the CloudFormation Template**
+1. Download the CloudFormation template from [here](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/alb-waf.yml)
 
-   The template can be found at: [ALB with WAF Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/alb-waf.yml)
+2. Navigate to the AWS CloudFormation console
 
-2. **Launch CloudFormation Stack**
+3. Click "Create stack" and choose "With new resources"
 
-   - Go to the AWS CloudFormation console
-   - Click "Create stack" and choose "With new resources (standard)"
-   - Select "Upload a template file" and upload the downloaded template
+4. Upload the template file
 
-3. **Configure Stack Parameters**
+5. Configure the required parameters:
 
-   Fill in the required parameters:
+   ### ALB Configuration
+   - Specify ALB name
+   - Choose internal or internet-facing
+   - Enable/disable deletion protection
+   - Configure HTTPS listener if needed
+   - Provide ACM certificate ARN for HTTPS
+   - Set hostname for routing rules
 
-   - ALB Settings (name, type, deletion protection, HTTPS configuration)
-   - Logging Settings (S3 log retention period)
-   - Target Group Settings (EC2 instance, health check path, sticky sessions)
-   - WAF Settings (enable/disable, Odoo-specific rules)
-   - Network configuration (VPC, subnets)
-   - Environment tagging
-   - DataDog monitoring option
+   ### Logging Settings
+   - Set log retention period in S3
 
-4. **Review and Create Stack**
+   ### Target Group Settings
+   - Specify target EC2 instance(s)
+   - Configure health check path
+   - Enable sticky sessions if needed
+   - Set sticky session duration
 
-   - Review your configuration
-   - Acknowledge any capabilities if prompted
-   - Click "Create stack"
+   ### WAF Configuration
+   - Enable/disable WAF integration
+   - Configure Odoo-specific rules if applicable
 
-5. **Monitor Stack Creation**
+   ### Network Settings
+   - Select VPC
+   - Choose public/private subnets
 
-   - Wait for the stack creation to complete (this may take several minutes)
-   - Check the "Events" tab for any issues during deployment
+6. Review the configuration and create the stack
 
-6. **Access Your Resources**
+7. Monitor the stack creation progress
 
-   - Once the stack is created, go to the "Outputs" tab
-   - You'll find the ALB DNS name here, which you can use to access your application
+8. Once complete, find the ALB DNS name in the Outputs tab
 
-## Post-Deployment Steps
+## Verification
 
-1. **Configure DNS (Optional)**
-   
-   If you're using a custom domain, update your DNS settings to point to the ALB DNS name.
-
-2. **Test Your Application**
-   
-   Access your application through the ALB to ensure it's working as expected.
-
-3. **Monitor and Optimize**
-   
-   - Review ALB access logs in the S3 bucket
-   - If enabled, check WAF rules and adjust as necessary
-   - Monitor ALB metrics in CloudWatch or DataDog (if configured)
+1. Access the ALB DNS name in a browser
+2. Verify HTTPS redirect works (if configured)
+3. Check target health in EC2 console
+4. Confirm WAF rules are active (if enabled)
+5. Verify logs are being delivered to S3
 
 ## Troubleshooting
 
-- If the stack fails to create, check the "Events" tab for error messages
-- Ensure all referenced resources (VPCs, subnets, EC2 instances) exist and are accessible
-- Verify that the provided ACM certificate (if using HTTPS) is valid and in the correct region
+- Check security groups allow required traffic
+- Verify target instances are healthy
+- Review CloudWatch logs for WAF blocks
+- Ensure S3 bucket permissions allow ALB logging
 
-By following this guide, you'll have a fully functional Application Load Balancer with optional WAF protection, providing a secure and scalable entry point for your web applications.
+## Next Steps
+
+- Configure custom WAF rules
+- Set up monitoring and alerts
+- Implement backup targets
+- Configure advanced routing rules

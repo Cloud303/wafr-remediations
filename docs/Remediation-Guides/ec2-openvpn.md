@@ -1,85 +1,85 @@
 ---
 layout: page
-title:  Deploying an OpenVPN Server on AWS Using CloudFormation
+title:  OpenVPN Server Deployment Guide
 permalink: /remediation-guides/ec2-openvpn/
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  Deploying an OpenVPN Server on AWS Using CloudFormation
+#  OpenVPN Server Deployment Guide
 
-## Benefits of Deployment
+This guide walks through deploying an OpenVPN server on AWS using CloudFormation. The template provides a secure and automated way to set up a VPN server with minimal configuration required.
 
-Deploying an OpenVPN server using this CloudFormation template offers several advantages:
+## Benefits
 
-1. **Quick and Easy Setup**: Rapidly deploy a fully configured OpenVPN server without manual installation steps.
-2. **Cost-Effective**: Utilizes ARM64 (Graviton) processors, which can provide better price-performance compared to x86 instances.
-3. **Secure Configuration**: Includes pre-configured security groups and IAM roles for enhanced security.
-4. **Scalability**: Easily adjustable instance types to match your performance needs.
-5. **High Availability**: Optional auto-recovery feature ensures your VPN server stays operational.
-6. **Monitoring Integration**: Optional DataDog monitoring tag for seamless integration with your existing monitoring setup.
-7. **Customizable**: Easily modifiable to suit specific requirements or organizational standards.
+- **Cost Effective**: Uses ARM-based Graviton processors which offer better price/performance
+- **Secure**: Automatically configures security groups and IAM roles with least privilege
+- **Reliable**: Optional auto-recovery ensures high availability
+- **Scalable**: Separate EBS volume for VPN data allows for easy backup and recovery
+- **Monitored**: Optional DataDog integration for monitoring
+- **Automated**: One-click deployment with CloudFormation
 
-## Deployment Guide
+## Prerequisites
 
-### Prerequisites
+- AWS account with permissions to create EC2, IAM, and CloudFormation resources
+- VPC and subnet where the VPN server will be deployed
+- EC2 key pair for SSH access
+- VPC CIDR range information
 
-- An AWS account with appropriate permissions to create CloudFormation stacks and associated resources.
-- A VPC and subnet where you want to deploy the OpenVPN server.
-- An EC2 key pair for secure access to the instance.
+## Deployment Steps
 
-### Deployment Steps
+1. Download the CloudFormation template from [here](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/ec2-openvpn.yml)
 
-1. **Access the Template**
-   
-   Download or copy the CloudFormation template from the following link:
-   [OpenVPN Server CloudFormation Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/ec2-openvpn.yml)
+2. Log into the AWS Console and navigate to CloudFormation
 
-2. **Launch CloudFormation Stack**
-   
-   - Open the AWS CloudFormation console.
-   - Click "Create stack" and choose "With new resources (standard)".
-   - Upload the template file or provide the template URL.
+3. Click "Create Stack" and upload the template file
 
-3. **Configure Stack Parameters**
-   
-   Fill in the required parameters:
+4. Fill in the required parameters:
    - VPC ID and CIDR
-   - EC2 instance type (t4g.micro or t4g.small recommended)
+   - Instance type (t4g.micro recommended for testing, t4g.small for production)
    - EC2 key pair name
-   - Subnet ID for deployment
+   - Subnet ID
    - OpenVPN admin password
-   - Enable/disable EC2 auto-recovery
-   - Enable/disable DataDog monitoring
+   - Auto-recovery setting
+   - DataDog monitoring preference
    - Environment tag
 
-4. **Review and Create Stack**
-   
-   - Review the stack details and estimated costs.
-   - Acknowledge that the stack might create IAM resources.
-   - Click "Create stack" to initiate the deployment.
+5. Review and create the stack
 
-5. **Monitor Stack Creation**
-   
-   - Wait for the stack creation to complete. This typically takes a few minutes.
-   - If any issues occur, check the "Events" tab for error messages.
+6. Once deployment is complete (10-15 minutes), get the OpenVPN Server URL from the stack outputs
 
-6. **Access OpenVPN Server**
-   
-   - Once the stack creation is complete, go to the "Outputs" tab.
-   - Note the "OpenVPN Server URL" value. This is the Elastic IP address assigned to your server.
-   - Use this URL to access the OpenVPN Access Server admin interface.
+7. Access the OpenVPN admin interface using:
+   - URL: https://<OpenVPN Server URL>:943/admin
+   - Username: openvpn
+   - Password: (specified during deployment)
 
-7. **Configure OpenVPN Clients**
-   
-   - Log in to the OpenVPN Access Server admin interface using the password you specified during stack creation.
-   - Follow the OpenVPN documentation to set up and distribute client configurations.
+## Post-Deployment Configuration
 
-### Post-Deployment Steps
+1. Log into the admin interface
+2. Configure additional users and access policies as needed
+3. Download the OpenVPN client for your platform
+4. Connect using client credentials
 
-1. **Security Hardening**: Review and adjust the security group rules if necessary.
-2. **Monitoring Setup**: If you enabled DataDog monitoring, ensure your DataDog agent is properly configured.
-3. **Backup Planning**: Consider setting up regular backups of your OpenVPN configuration.
-4. **Update Management**: Plan for regular updates of the Ubuntu OS and OpenVPN software.
+## Monitoring
 
-By following this guide, you'll have a fully functional OpenVPN server deployed on AWS, ready to secure your remote access needs.
+- If DataDog monitoring was enabled, the instance will appear in your DataDog dashboard
+- CloudWatch alarms will monitor instance health if auto-recovery was enabled
+- Check CloudFormation stack events for deployment issues
+
+## Security Considerations
+
+- The template creates a security group allowing:
+  - TCP 443 (HTTPS) for web admin
+  - TCP 943 (OpenVPN Admin)
+  - UDP 1194 (OpenVPN)
+  - TCP 22 (SSH) from VPC CIDR only
+- Consider adding additional security group rules as needed
+- Regularly update the admin password
+- Monitor VPN access logs
+
+## Support
+
+For issues with the template, please check:
+1. CloudFormation stack events
+2. EC2 instance system logs
+3. OpenVPN server logs at /var/log/openvpn

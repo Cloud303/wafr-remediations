@@ -11,13 +11,13 @@ This CloudFormation template creates a customizable VPC with public, private, an
 - Internet Gateway for public subnet internet access
 - Customizable CIDR blocks
 - Network ACLs for each subnet
-- VPC Flow Logs
 - Optional S3 and ECR VPC endpoints
-- Customizable DHCP options
+- VPC Flow Logs
+- Custom DHCP options
 
 ## Parameters
 
-The template includes many parameters to customize the VPC configuration:
+The template accepts many parameters to customize the VPC configuration:
 
 - Number of AZs to use (1-4)
 - AZ names
@@ -40,19 +40,19 @@ The template includes many parameters to customize the VPC configuration:
 - Route tables
 - Network ACLs
 - VPC Flow Logs
-- S3 VPC Endpoint (optional)
-- ECR VPC Endpoints (optional)
+- VPC Endpoints (optional)
+- DHCP Options Set
 
 ## Outputs
 
-The template exports the following as CloudFormation outputs:
+The template outputs IDs and other details for the created resources, including:
 
 - VPC ID and CIDR
 - Subnet IDs 
 - Route table IDs
 - NACL IDs
 
-These can be referenced in other stacks using `Fn::ImportValue`.
+Many outputs are exported for use in other stacks.
 
 ## Usage
 
@@ -63,4 +63,12 @@ These can be referenced in other stacks using `Fn::ImportValue`.
 
 ## Customization
 
-The template uses conditions extensively to allow customizing which resources are created. Modify parameters and conditions as needed to adjust the VPC architecture.
+The template uses conditions extensively to allow customizing the VPC architecture. Key areas that can be customized:
+
+- Number of AZs (1-4)
+- Whether to create private and data subnets
+- CIDR blocks for VPC and subnets
+- DNS settings
+- VPC endpoints
+
+Modify the template as needed for your specific requirements.

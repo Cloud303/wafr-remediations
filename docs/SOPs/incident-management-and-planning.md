@@ -6,132 +6,199 @@ resource: true
 categories: [SOPs]
 ---
 
-#  Incident Management and Planning.md
+#  Incident Management and Planning
 
 ## Overview
 
-This Standard Operating Procedure (SOP) outlines the key processes and best practices for incident management and planning related to AWS workloads and environments. It is intended for security teams, incident responders, and workload owners responsible for preparing for and responding to security incidents.
+This Standard Operating Procedure (SOP) provides guidance on establishing and maintaining an effective incident management program for cloud workloads. The intended audience includes security teams, incident responders, cloud administrators, and application teams responsible for responding to and recovering from security incidents.
 
-The purpose of this SOP is to provide guidance on:
+The SOP covers key aspects of incident management including identifying key personnel and resources, developing incident response plans, and regularly assessing security controls. Following these procedures helps ensure consistent and effective response to security incidents while minimizing business impact.
 
-- Identifying key personnel and external resources needed for incident response
-- Developing comprehensive incident management plans  
-- Regularly assessing and improving the security properties of CI/CD pipelines
+## Identify Key Personnel and External Resources
 
-By following these practices, organizations can improve their readiness to respond to and mitigate security incidents affecting their AWS environments.
+### Overview
+Having clearly defined roles and responsibilities is critical for effective incident response. This section outlines how to identify and document key personnel and external resources needed during security incidents.
 
-## Identify key personnel and external resources
+### Key Personnel Roles
 
-### Why it's important
+The following key roles should be identified and documented:
 
-Having a clear understanding of the key personnel and external resources needed during a security incident is critical for an effective and timely response. This allows organizations to quickly engage the right people and leverage the appropriate resources when an incident occurs, rather than scrambling to identify them in the heat of the moment.
+- **Incident Manager**: Has overall authority during incident response
+- **Incident Responders**: Responsible for investigation and remediation activities
+- **Communications Lead**: Handles internal and external communications
+- **Subject Matter Experts**: Provide expertise on impacted systems and applications
 
-### Implementation advice
+For each role:
+- Document primary and backup contacts with multiple contact methods
+- Define clear responsibilities and authority levels
+- Establish escalation paths when personnel are unavailable
+- Review and update contact information regularly
 
-- Maintain an up-to-date list of key internal personnel, including:
-  - Incident manager
-  - Incident responders 
-  - Communications lead
-  - Subject matter experts for critical workloads
+### External Resources
 
-- Include contact information, roles, and responsibilities for each person
+Identify and document external parties that may be needed:
 
-- Identify relevant external partners and resources:
-  - AWS Support 
-  - Managed security service providers
-  - Legal counsel
-  - PR/communications firms
+- AWS Support contacts and support plan details
+- Third-party security vendors and consultants  
+- Legal counsel
+- PR/Communications firms
+- Law enforcement contacts
+- Regulatory bodies that need to be notified
 
-- Document escalation procedures and approval processes
+Maintain updated contact information and engagement procedures for all external resources.
 
-- Use AWS Systems Manager Incident Manager to capture contacts, define response plans, and create escalation paths
+### Implementation Steps
 
-- Implement on-call rotations to distribute responsibility
+1. Create and maintain contact lists with:
+   - Names and roles
+   - Multiple contact methods (phone, email, etc)
+   - Escalation procedures
+   - Response time expectations
 
-- Regularly review and update the personnel/resource list to reflect organizational changes
+2. Document engagement procedures for external resources:
+   - Support contract details
+   - SLAs and response times
+   - Methods for engaging support
+   - Required information for support requests
 
-- Conduct tabletop exercises to validate that the right people are included
+3. Regularly review and update:
+   - Contact information accuracy
+   - Role assignments
+   - External resource contracts/agreements
+   - Notification requirements
 
-### Additional considerations
+4. Consider using AWS Systems Manager Incident Manager to:
+   - Manage contacts and on-call schedules
+   - Define response plans
+   - Create escalation paths
+   - Track incidents
 
-- Ensure 24/7 coverage for critical roles
-- Have backup contacts for key positions
-- Include both technical and non-technical stakeholders  
-- Consider geographic distribution of personnel
-- Maintain confidentiality of sensitive contact information
+## Develop Incident Management Plans
 
-## Develop incident management plans
+### Overview
+A comprehensive incident management plan provides the foundation for responding to and recovering from security incidents. The plan should document processes, procedures and playbooks for handling different types of incidents.
 
-### Why it's important
+### Plan Components
 
-A comprehensive incident management plan provides a structured approach for responding to security events. It ensures that the organization has predefined processes and procedures in place to detect, analyze, contain, eradicate and recover from incidents in a consistent and effective manner. Without a formal plan, responses can be disorganized, inconsistent and potentially worsen the impact of an incident.
+The incident management plan should include:
 
-### Implementation advice
+1. Incident Response Team Overview
+   - Team structure and organization
+   - Roles and responsibilities 
+   - Training requirements
+   - Communication procedures
 
-- Create a formal incident response plan document that includes:
-  - Incident response team overview and structure
-  - Roles and responsibilities 
-  - Communication and escalation procedures
-  - Incident classification and prioritization definitions
-  - Step-by-step response procedures for common incident types
-  - Tools and resources available to the team
+2. Incident Classification Framework
+   - Severity levels and definitions
+   - Impact assessment criteria
+   - Prioritization guidelines
+   - Escalation thresholds
 
-- Align the plan with relevant compliance and regulatory requirements (e.g. NIST, GDPR)
+3. Response Procedures
+   - Initial assessment and triage
+   - Investigation processes
+   - Containment strategies
+   - Eradication procedures
+   - Recovery steps
+   - Post-incident activities
 
-- Leverage the AWS Shared Responsibility Model to clarify security responsibilities
+4. Communication Plans
+   - Internal notification procedures
+   - External communication guidelines
+   - Stakeholder management
+   - Status reporting requirements
 
-- Define incident severity levels and associated response times
+5. Documentation Requirements
+   - Incident logging procedures
+   - Evidence handling guidelines
+   - Chain of custody processes
+   - Post-incident reporting
 
-- Document procedures for engaging AWS Support and other external resources
+### Implementation Steps
 
-- Include guidance on evidence preservation and forensic investigation
+1. Document incident response procedures:
+   - Create detailed playbooks for common scenarios
+   - Define clear roles and responsibilities
+   - Establish communication protocols
+   - Set documentation standards
 
-- Establish processes for post-incident analysis and continuous improvement
+2. Test and validate plans through:
+   - Tabletop exercises
+   - Simulated incidents
+   - After-action reviews
+   - Plan updates based on lessons learned
 
-- Regularly review and update the plan based on lessons learned
+3. Maintain and update plans:
+   - Regular review cycles
+   - Incorporation of lessons learned
+   - Updates for new threats/risks
+   - Testing of changes
 
-- Conduct training on the plan for all relevant personnel
+4. Train personnel on plans:
+   - Initial training for new team members
+   - Regular refresher training
+   - Scenario-based exercises
+   - Documentation of training
 
-### Additional considerations
+## Regularly Assess Security Properties of the Pipelines
 
-- Customize plans for different types of incidents (e.g. data breach, ransomware, DDoS)
-- Include both technical and non-technical (e.g. legal, PR) aspects of incident response
-- Consider impacts to customers and partners in the response procedures
-- Align incident management with broader business continuity plans
-- Leverage automation where possible to streamline response actions
+### Overview
+The security of deployment pipelines is critical for maintaining the integrity of applications and infrastructure. Regular assessment helps identify vulnerabilities and ensures controls remain effective.
 
-## Regularly assess security properties of the pipelines
+### Key Assessment Areas
 
-### Why it's important
+1. Access Controls
+   - IAM roles and permissions
+   - Secrets management
+   - Authentication mechanisms
+   - Authorization policies
 
-CI/CD pipelines are critical infrastructure for deploying code and changes to production environments. Ensuring the security and integrity of these pipelines is essential to prevent unauthorized changes or the introduction of vulnerabilities into production systems. Regular assessment helps identify potential weaknesses or misconfigurations before they can be exploited.
+2. Pipeline Configuration
+   - Build environments
+   - Testing frameworks
+   - Deployment processes
+   - Change management
 
-### Implementation advice
+3. Security Controls
+   - Code scanning
+   - Vulnerability testing
+   - Compliance checks
+   - Audit logging
 
-- Apply Well-Architected Security Pillar principles to pipeline infrastructure
-- Implement least privilege access for pipeline components and processes
-- Use IAM roles instead of long-term credentials for pipeline authentication
-- Enable logging and monitoring of all pipeline activities
-- Regularly review and audit pipeline configurations and permissions
-- Implement safeguards to prevent deployment to unintended environments
-- Use code signing to verify integrity of deployed artifacts
-- Scan pipeline code and configurations for vulnerabilities
-- Conduct penetration testing of pipeline infrastructure 
-- Implement separation of duties between pipeline management and usage
+### Implementation Steps
 
-- Use AWS services like CodePipeline, CodeBuild, and CodeDeploy that integrate security best practices
+1. Establish assessment schedule:
+   - Regular security reviews
+   - Automated scanning
+   - Manual testing
+   - Third-party assessments
 
-- Leverage AWS IAM Access Analyzer to generate least privilege policies
+2. Define assessment criteria:
+   - Security requirements
+   - Compliance standards
+   - Best practices
+   - Risk thresholds
 
-- Configure Amazon EventBridge rules to detect and alert on suspicious pipeline activity
+3. Document findings and remediation:
+   - Issue tracking
+   - Remediation plans
+   - Verification testing
+   - Metrics collection
 
-### Additional considerations
+4. Review and improve:
+   - Update security controls
+   - Enhance monitoring
+   - Refine processes
+   - Document lessons learned
 
-- Treat pipeline infrastructure as a critical production system
-- Implement change management processes for pipeline modifications
-- Regularly rotate any long-term credentials used by pipelines
-- Consider using separate accounts for pipeline infrastructure
-- Implement break-glass procedures for emergency pipeline access
-- Conduct game day exercises to validate pipeline security controls
+### Best Practices
 
-By focusing on these key areas - identifying personnel and resources, developing robust plans, and securing deployment pipelines - organizations can significantly improve their incident management and response capabilities for AWS environments. Regular testing and continuous improvement of these processes is essential as both threats and cloud environments evolve over time.
+- Use automated tools for continuous assessment
+- Implement least privilege access
+- Maintain detailed audit logs
+- Regular security training for pipeline teams
+- Clear documentation of security controls
+- Incident response procedures for pipeline issues
+- Regular testing of security controls
+- Change management processes
+

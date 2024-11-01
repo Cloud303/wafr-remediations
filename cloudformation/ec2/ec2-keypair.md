@@ -23,22 +23,26 @@ The template creates the following AWS resources:
 
 ## Outputs
 
-| Output | Description | Value |
-|--------|-------------|-------|
-| TemplateVersion | Template Version | `ec2-keypair-v1.0` |
+| Output | Description |
+|--------|-------------|
+| TemplateVersion | The version of the template (ec2-keypair-v1.0) |
 
 ## Usage
 
 1. Upload the template to CloudFormation
 2. Create a new stack using the template
 3. Provide values for the parameters:
-   - `pKeyPairName`: Specify a name for your EC2 Key Pair
-   - `pEnvironmentTag`: Choose the appropriate environment tag
-4. Create the stack
-5. Once the stack creation is complete, the EC2 Key Pair will be created and the private key will be stored in Parameter Store
+   - Key Pair Name
+   - Environment Tag
+4. Launch the stack
 
-## Notes
+After the stack creation is complete, you can find the private key in Parameter Store at `/ec2/keypair/key-*`.
 
-- Ensure you have the necessary permissions to create EC2 Key Pairs and write to Parameter Store
-- The private key will be stored securely in Parameter Store, but make sure to manage access to it appropriately
-- The template version is `ec2-keypair-v1.0`
+## Security Considerations
+
+- The private key is stored in Parameter Store. Ensure that access to this parameter is restricted to authorized personnel only.
+- It's recommended to rotate keys regularly for enhanced security.
+
+## Maintenance
+
+Remember to delete the key pair and the corresponding Parameter Store entry when they are no longer needed to maintain good security practices.
