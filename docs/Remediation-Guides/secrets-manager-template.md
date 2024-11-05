@@ -4,6 +4,7 @@ title: 'RDS Secrets Manager Rotation Deployment Guide'
 permalink: '/remediation-guides/secrets-manager-template/'
 resource: true
 categories: [Remediation Guides]
+parent: 'Remediation Guides'
 ---
 
 #  RDS Secrets Manager Rotation Deployment Guide

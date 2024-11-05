@@ -4,6 +4,7 @@ title: 'AWS VPC Infrastructure Deployment Guide'
 permalink: '/remediation-guides/vpc/'
 resource: true
 categories: [Remediation Guides]
+parent: 'Remediation Guides'
 ---
 
 #  AWS VPC Infrastructure Deployment Guide

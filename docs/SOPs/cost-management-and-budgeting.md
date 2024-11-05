@@ -4,6 +4,7 @@ title: 'Cost Management and Budgeting'
 permalink: '/sops/cost-management-and-budgeting/'
 resource: true
 categories: [SOPs]
+parent: 'SOPs'
 ---
 
 #  Cost Management and Budgeting

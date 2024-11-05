@@ -4,6 +4,7 @@ title: 'Deploy an OpenVPN Server on AWS with CloudFormation'
 permalink: '/remediation-guides/ec2-openvpn/'
 resource: true
 categories: [Remediation Guides]
+parent: 'Remediation Guides'
 ---
 
 #  Deploy an OpenVPN Server on AWS with CloudFormation

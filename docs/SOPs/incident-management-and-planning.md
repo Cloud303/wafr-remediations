@@ -4,6 +4,7 @@ title: 'Incident Management and Planning'
 permalink: '/sops/incident-management-and-planning/'
 resource: true
 categories: [SOPs]
+parent: 'SOPs'
 ---
 
 #  Incident Management and Planning

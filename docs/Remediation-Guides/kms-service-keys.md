@@ -4,6 +4,7 @@ title: 'Deploying AWS KMS Service Keys'
 permalink: '/remediation-guides/kms-service-keys/'
 resource: true
 categories: [Remediation Guides]
+parent: 'Remediation Guides'
 ---
 
 #  Deploying AWS KMS Service Keys

@@ -4,6 +4,7 @@ title: 'AWS Budget Notification Deployment Guide'
 permalink: '/remediation-guides/budgets/'
 resource: true
 categories: [Remediation Guides]
+parent: 'Remediation Guides'
 ---
 
 #  AWS Budget Notification Deployment Guide

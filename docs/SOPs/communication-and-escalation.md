@@ -4,6 +4,7 @@ title: 'Communication and Escalation'
 permalink: '/sops/communication-and-escalation/'
 resource: true
 categories: [SOPs]
+parent: 'SOPs'
 ---
 
 #  Communication and Escalation

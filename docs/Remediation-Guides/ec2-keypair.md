@@ -4,6 +4,7 @@ title: 'EC2 Key Pair Deployment Guide'
 permalink: '/remediation-guides/ec2-keypair/'
 resource: true
 categories: [Remediation Guides]
+parent: 'Remediation Guides'
 ---
 
 #  EC2 Key Pair Deployment Guide

@@ -4,6 +4,7 @@ title: 'Deploying an Application Load Balancer with WAF Protection'
 permalink: '/remediation-guides/alb-waf/'
 resource: true
 categories: [Remediation Guides]
+parent: 'Remediation Guides'
 ---
 
 #  Deploying an Application Load Balancer with WAF Protection

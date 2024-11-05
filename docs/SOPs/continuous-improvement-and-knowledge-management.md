@@ -4,6 +4,7 @@ title: 'Continuous Improvement and Knowledge Management'
 permalink: '/sops/continuous-improvement-and-knowledge-management/'
 resource: true
 categories: [SOPs]
+parent: 'SOPs'
 ---
 
 #  Continuous Improvement and Knowledge Management

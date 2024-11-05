@@ -4,6 +4,7 @@ title: 'Ownership and Responsibility'
 permalink: '/sops/ownership-and-responsibility/'
 resource: true
 categories: [SOPs]
+parent: 'SOPs'
 ---
 
 #  Ownership and Responsibility

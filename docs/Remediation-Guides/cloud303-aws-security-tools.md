@@ -4,6 +4,7 @@ title: 'Deploying AWS Security Tools with CloudFormation'
 permalink: '/remediation-guides/cloud303-aws-security-tools/'
 resource: true
 categories: [Remediation Guides]
+parent: 'Remediation Guides'
 ---
 
 #  Deploying AWS Security Tools with CloudFormation

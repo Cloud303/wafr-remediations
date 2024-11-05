@@ -4,6 +4,7 @@ title: 'Governance, Compliance, and Evaluation'
 permalink: '/sops/governance-compliance-and-evaluation/'
 resource: true
 categories: [SOPs]
+parent: 'SOPs'
 ---
 
 #  Governance, Compliance, and Evaluation
