@@ -28,6 +28,16 @@ url: "https://cloud303.github.io" # the base hostname & protocol for your site, 
 # twitter_username: jekyllrb
 # github_username:  jekyll
 
+# Aux links for the upper right navigation
+aux_links:
+
+# External navigation links
+nav_external_links:
+  - title: "Cloud303.io"
+    url: "https://cloud303.io"
+  - title: "AWS Well-Architected Framework"
+    url: "https://aws.amazon.com/architecture/well-architected/"
+
 repository: cloud303/wafr-remediations
 
 category-list: [Remediation Guides, SOPs]
