@@ -1,73 +1,83 @@
 ---
 layout: page
-title: 'VPC Infrastructure Deployment Guide'
+title: 'AWS VPC Infrastructure Deployment Guide'
 permalink: '/remediation-guides/vpc/'
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  VPC Infrastructure Deployment Guide
+#  AWS VPC Infrastructure Deployment Guide
 
-This guide walks through deploying a highly available and secure VPC infrastructure using CloudFormation. The template creates a production-ready VPC with public, private and data subnets across multiple Availability Zones.
+This guide walks through deploying a production-ready VPC infrastructure using CloudFormation. The template creates a highly available and secure VPC architecture with the following benefits:
 
-## Benefits
-
-- **High Availability**: Deploy across up to 4 AZs for maximum redundancy and fault tolerance
-- **Security**: Private subnets and NACLs protect sensitive workloads from direct internet access
-- **Cost Optimization**: NAT Gateways only in AZs where needed
-- **Performance**: VPC Endpoints for S3 and ECR reduce data transfer costs and latency
-- **Flexibility**: Customizable CIDR ranges and subnet configurations
-- **Monitoring**: Built-in VPC Flow Logs for network traffic analysis
-- **Automation**: Infrastructure as code for consistent deployments
+- **High Availability** - Deploy across up to 4 Availability Zones for maximum redundancy
+- **Network Segmentation** - Separate public, private and data subnet tiers for security
+- **Internet Access** - NAT Gateways and Internet Gateway for controlled outbound access
+- **VPC Endpoints** - Optional S3 and ECR endpoints for secure AWS service access
+- **Network Controls** - NACLs and Flow Logs for network security and monitoring
+- **Flexible Configuration** - Customizable CIDR ranges and subnet options
+- **DNS Integration** - Custom domain name and domain controller support
 
 ## Prerequisites
 
+Before deploying, ensure you have:
+
 - AWS account with permissions to create VPC resources
-- Basic understanding of VPC networking concepts
-- AWS CLI or Console access
+- Sufficient Elastic IP quota for NAT Gateways (1 per AZ)
+- CloudFormation template access
 
 ## Deployment Steps
 
-1. Download the CloudFormation template:
-   ```bash
-   curl -O https://raw.githubusercontent.com/Cloud303/wafr-remediations/blob/main/cloudformation/vpc/vpc.yml
-   ```
+1. Access the CloudFormation console in your AWS account
 
-2. Navigate to the CloudFormation console in your desired region
+2. Create a new stack and upload the template:
+   - Template URL: [vpc.yml](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/vpc/vpc.yml)
 
-3. Click "Create Stack" and upload the template file
+3. Configure stack parameters:
 
-4. Configure the stack parameters:
+   **VPC Structure**
    - Select number of Availability Zones (1-4)
-   - Specify VPC CIDR range
-   - Enable/disable private and data subnets
-   - Configure DNS settings
-   - Set VPC Flow Log retention
-   - Enable required VPC Endpoints
-   - Add environment tags
+   - Choose specific AZs or let AWS select automatically
+   - Enter VPC CIDR prefix
+   - Enable/disable private and data subnet tiers
+   - Select CIDR allocation method
 
-5. Review the configuration and create the stack
+   **DNS Configuration** 
+   - Enter custom internal domain name (optional)
+   - Specify up to 3 domain controller IPs (optional)
+   - Configure DHCP options
 
-6. Monitor the stack creation progress (~10-15 minutes)
+   **VPC Endpoints**
+   - Enable/disable S3 endpoint
+   - Enable/disable ECR endpoint
 
-7. Once complete, note the exported outputs for use in other stacks
+   **Additional Settings**
+   - Set Flow Log retention period
+   - Add Environment tag
 
-## Validation
+4. Review the configuration and create stack
 
-After deployment, verify:
+5. Monitor stack creation progress in the CloudFormation console
 
-- Subnets are created in specified AZs
-- Route tables are configured correctly
-- NAT Gateways are operational
-- VPC Endpoints are accessible
-- Flow Logs are being generated
+6. Once complete, note the exported resources in the Outputs tab:
+   - VPC ID and CIDR
+   - Subnet IDs for each tier
+   - Route table IDs
+   - NACL IDs
 
-## Next Steps
+## Post-Deployment
 
-- Deploy workloads into the private subnets
-- Configure security groups for resources
-- Set up VPN or Direct Connect for remote access
-- Enable additional VPC Endpoints as needed
-- Monitor VPC Flow Logs for security analysis
+After successful deployment:
 
-[View Template Source](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/vpc/vpc.yml)
+1. Verify subnet configurations and routing
+2. Test connectivity between subnet tiers
+3. Validate VPC endpoint access if enabled
+4. Check Flow Logs are being generated
+5. Configure additional resources like security groups as needed
+
+## Support
+
+For issues or questions, refer to:
+- Template documentation
+- AWS VPC documentation
+- CloudFormation troubleshooting guides

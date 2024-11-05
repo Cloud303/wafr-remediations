@@ -1,61 +1,75 @@
 #  Application Load Balancer with WAF CloudFormation Template
 
-This CloudFormation template creates an Application Load Balancer (ALB) with optional Web Application Firewall (WAF) integration.
+This CloudFormation template creates an Application Load Balancer (ALB) with optional WAF integration and HTTP to HTTPS redirection.
 
 ## Features
 
-- Creates an internet-facing or internal ALB
-- Configures HTTP to HTTPS redirection 
-- Integrates with AWS WAF (optional)
-- Supports sticky sessions on target groups
-- Configures ALB access logging to S3
-- Applies custom tags including DataDog monitoring tag
+- Creates either an internet-facing or internal ALB
+- Optional HTTPS listener with HTTP->HTTPS redirection
+- Optional WAF integration with XSS and SQL injection protection rules
+- ALB access logging to S3 with configurable retention
+- Target group with configurable sticky sessions
+- Optional DataDog monitoring integration
+- Deletion protection option
 
 ## Parameters
 
-The template accepts the following parameters:
-
 ### ALB Settings
-
 - `pAlbName` - Name of the ALB
-- `pAlbType` - Internal or internet-facing ALB  
-- `pAlbDeletionProtection` - Enable deletion protection
+- `pAlbType` - ALB scheme (internal or internet-facing)
+- `pAlbDeletionProtection` - Enable/disable deletion protection
 - `pCreateHttpsListener` - Create HTTPS listener
 - `pAcmCertArn` - ACM certificate ARN for HTTPS
-- `pHostname01` - Hostname for routing
+- `pHostname01` - Host header for routing
 
-### ALB Logging 
+### ALB Logging
+- `pAlbS3LogBucketLifeCycleDays` - Days to retain ALB logs (1-365)
 
-- `pAlbS3LogBucketLifeCycleDays` - S3 log retention period
-
-### Target Group Settings
-
-- `pEc2TgInstance01` - EC2 instance ID for target
+### Target Group Settings  
+- `pEc2TgInstance01` - Target EC2 instance ID
 - `pHealthCheckPath` - Health check path
 - `pEnableTgStickySession` - Enable sticky sessions
-- `pTgStickyDuration` - Sticky session duration
+- `pTgStickyDuration` - Sticky session duration (seconds)
 
 ### WAF Settings
-
 - `pEnableWaf` - Enable WAF integration
-- `pOdooAlb` - Odoo-specific WAF rules
+- `pOdooAlb` - Enable Odoo-specific WAF rules
 
 ### Network Settings
+- `pVpcId` - VPC ID
+- `pVpcCidr` - VPC CIDR
+- `pPublicSubnet01/02` - Public subnets for internet-facing ALB
+- `pPrivateSubnet01/02` - Private subnets for internal ALB
 
-- VPC, subnet, and CIDR parameters
+## Resources Created
+
+- Application Load Balancer
+- Security Group
+- S3 Bucket for ALB logs
+- Target Group
+- HTTP/HTTPS Listeners
+- WAF Web ACL (if enabled)
+  - SQL Injection protection
+  - XSS protection
+  - Odoo-specific rules (if enabled)
 
 ## Usage
 
-1. Upload the template to CloudFormation
-2. Specify the required parameters
-3. Create the stack
-
-The template will create the ALB and associated resources based on the provided configuration.
+1. Create a new stack using this template
+2. Provide required parameter values
+3. Review and create stack
+4. Access ALB using the DNS name from stack outputs
 
 ## Outputs
 
 - `ALBdnsName` - DNS name of the created ALB
+- `Version` - Template version
+
+## Requirements
+
+- VPC with public/private subnets
+- ACM certificate (for HTTPS)
+- Target EC2 instance
 
 ## Version
-
-Template version: alb-waf-0.4
+Current version: alb-waf-0.4

@@ -1,42 +1,61 @@
-#  AWS Budget CloudFormation Template
+#  AWS Budget Notification CloudFormation Template
 
-This CloudFormation template creates an AWS Budget with email notifications for cost management.
+This CloudFormation template creates an AWS Budget with email notifications when actual costs exceed the specified threshold.
 
-## Description
+## Overview
 
-This template allows you to set up a budget in AWS Billing and Cost Management, with customizable parameters for budget amount, time unit, notification threshold, and email notifications.
+The template sets up:
+- An AWS Budget to track costs
+- Email notification when spending exceeds threshold percentage
+- Configurable budget amount, time period and notification settings
 
 ## Parameters
 
-| Parameter | Description | Default | Allowed Values |
-|-----------|-------------|---------|----------------|
-| pAmount | The cost associated with the budget | - | Number |
-| pTimeUnit | Budget reset period | MONTHLY | MONTHLY, QUARTERLY, ANNUALLY |
-| pNotificationThreshold | Budget threshold percentage for notification | 80 | String |
-| pNotificationEmail | Email address for notifications | - | String |
-
-## Resources
-
-The template creates the following AWS resource:
-
-- **AWS::Budgets::Budget**: Sets up a budget with specified limits and notification rules.
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| pAmount | Budget amount in USD | - |
+| pTimeUnit | Budget reset period (MONTHLY/QUARTERLY/ANNUALLY) | MONTHLY |
+| pNotificationThreshold | Notification threshold percentage | 80 |
+| pNotificationEmail | Email address for notifications | - |
 
 ## Usage
 
-1. Upload the template to CloudFormation or use it directly from an S3 bucket.
-2. Create a new stack and provide values for the parameters.
-3. Review and create the stack.
+1. Create a new stack using this template
+2. Specify the required parameters:
+   - Set your desired budget amount
+   - Choose the time period 
+   - Configure notification threshold percentage
+   - Enter email address for notifications
+3. Create stack
 
-## Outputs
+The template will create a budget named `{AccountId}-cloud303-billing-alarm`
 
-- **Version**: Displays the template version (budgets-0.1)
+## Cost Types Included
 
-## Notes
+The budget tracks the following cost types:
+- Credits
+- Discounts  
+- Subscriptions (including other and recurring)
+- Support
+- Tax
+- Upfront costs
+- Refunds
 
-- The budget is set up for the AWS account where the CloudFormation stack is created.
-- Notifications are sent via email when actual spend exceeds the specified threshold percentage.
-- The budget includes various cost types like credits, discounts, subscriptions, support, taxes, and upfront costs.
+## Notifications
+
+Email notifications will be sent when:
+- Actual costs exceed the specified threshold percentage of the budget amount
+
+## Output
+
+The template outputs its version number as `budgets-0.1`
+
+## Requirements
+
+- AWS Account
+- Permissions to create AWS Budgets
+- Valid email address for notifications
 
 ## License
 
-This template is provided as-is under the MIT license.
+This template is provided as-is under MIT license.

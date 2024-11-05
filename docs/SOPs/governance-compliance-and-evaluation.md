@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Governance, Compliance, and Evaluation
-permalink: /sops/governance-compliance-and-evaluation/
+title: 'Governance, Compliance, and Evaluation'
+permalink: '/sops/governance-compliance-and-evaluation/'
 resource: true
 categories: [SOPs]
 ---
@@ -10,175 +10,160 @@ categories: [SOPs]
 
 ## Overview
 
-This Standard Operating Procedure (SOP) provides guidance on evaluating customer needs, internal customer needs, governance requirements, and compliance requirements. It is intended for use by cloud operations teams, architects, developers, and compliance personnel responsible for designing, implementing, and maintaining workloads in AWS.
+This Standard Operating Procedure (SOP) provides guidance on evaluating customer needs, internal customer needs, governance requirements, and compliance requirements. It is intended for teams responsible for implementing and maintaining governance, compliance, and evaluation processes within the organization.
 
-The purpose of this SOP is to establish standardized processes for:
-
-- Evaluating and understanding external customer needs
-- Evaluating and understanding internal customer needs  
-- Evaluating and implementing governance requirements
-- Evaluating and implementing compliance requirements
+The target audience includes:
+- Compliance and governance teams
+- Operations teams
+- Development teams
+- Security teams
+- Business stakeholders
 
 ## Evaluate Customer Needs
 
-### Overview
-Understanding and evaluating external customer needs is critical for delivering business value and ensuring customer satisfaction. This involves engaging key stakeholders including business, development and operations teams to determine priorities and focus areas.
+### Purpose
+Understanding and evaluating external customer needs is critical for delivering business value and ensuring customer satisfaction. This process helps verify that operational support aligns with desired business outcomes.
 
-### Implementation Guidance
+### Implementation
+1. Involve key stakeholders including business, development, and operations teams to determine focus areas for external customer needs
 
-1. Work backwards from customer outcomes by:
-   - Engaging directly with customers to understand their needs
-   - Collecting feedback through surveys, support tickets, and other channels
-   - Analyzing usage patterns and metrics
-   - Testing new features with customers
+2. Work backwards from customer outcomes to understand how operational practices support business objectives 
 
-2. Understand how operational practices support business outcomes:
-   - Map operational activities to business goals
-   - Define and track relevant KPIs
-   - Measure customer satisfaction
-   - Monitor service levels
+3. Establish mechanisms to capture customer needs through:
+   - Customer feedback channels
+   - Usage analytics
+   - Support ticket analysis
+   - Regular customer engagement
+   - Surveys and interviews
 
-3. Engage all relevant parties:
-   - Hold regular stakeholder meetings
-   - Create cross-functional teams
-   - Establish clear communication channels
-   - Document decisions and requirements
+4. Create a shared understanding across teams of:
+   - Business functions of the workload
+   - Roles of each team in operations
+   - How these support shared business goals
 
-4. Establish mechanisms to capture customer needs:
-   - Implement feedback collection systems
-   - Create customer advisory boards
-   - Monitor support channels
-   - Track feature requests
+5. Review historical support data to validate operational decisions
+
+6. Engage customers to validate feature requirements before development
 
 ### Best Practices
-
-- Document all customer requirements and feedback
-- Prioritize needs based on business impact
-- Validate understanding with customers
-- Regularly review and update requirements
-- Maintain traceability between needs and implementation
-- Measure success through customer satisfaction metrics
+- Maintain regular communication with customers
+- Document and track customer requirements
+- Validate assumptions through data and direct feedback
+- Consider both functional and non-functional requirements
+- Align operational capabilities with customer needs
+- Measure customer satisfaction and iterate based on feedback
 
 ## Evaluate Internal Customer Needs
 
-### Overview
-Internal customers like development teams, operations teams, and business units have specific needs that must be understood and met to enable efficient operations. This requires collaboration and clear communication channels.
+### Purpose 
+Internal customer needs must be evaluated to ensure operational support meets the requirements of development teams, operations teams, and other internal stakeholders.
 
-### Implementation Guidance
+### Implementation
+1. Engage key stakeholders to identify internal customer needs and priorities
 
-1. Review business goals and priorities:
-   - Meet with internal stakeholders
-   - Document requirements and constraints  
-   - Understand dependencies
-   - Define success criteria
+2. Establish priorities to focus improvement efforts on areas with greatest impact:
+   - Team skills development 
+   - Workload performance optimization
+   - Cost reduction
+   - Runbook automation
+   - Enhanced monitoring
 
-2. Establish shared understanding:
-   - Create documentation
-   - Hold training sessions
-   - Define roles and responsibilities
-   - Set expectations
+3. Create feedback loops to gather internal requirements through:
+   - Regular stakeholder meetings
+   - Internal surveys
+   - Support ticket analysis
+   - Usage metrics
 
-3. Implement feedback mechanisms:
-   - Regular check-ins
-   - Surveys
-   - Ticketing systems
-   - Retrospectives
+4. Document shared understanding of:
+   - Business functions
+   - Team roles and responsibilities 
+   - How teams support each other
+   - Shared business goals
 
-4. Monitor and measure:
-   - Track KPIs
-   - Measure satisfaction
-   - Review metrics
-   - Adjust as needed
+5. Update priorities as needs evolve
 
 ### Best Practices
-
-- Document internal requirements
-- Create service level agreements
-- Define escalation paths
-- Maintain regular communication
-- Track and resolve issues
-- Review and update processes
-- Share knowledge and best practices
+- Maintain open communication channels
+- Document internal requirements and priorities
+- Validate assumptions with data
+- Consider impacts across teams
+- Measure internal customer satisfaction
+- Regularly review and update priorities
 
 ## Evaluate Governance Requirements
 
-### Overview
-Governance requirements establish the rules, policies and frameworks that guide how an organization operates. These requirements must be incorporated into workload design and operations.
+### Purpose
+Governance requirements establish policies, rules and frameworks for achieving business goals. They affect technology choices and operational procedures.
 
-### Implementation Guidance
+### Implementation
+1. Work with stakeholders and governance organizations to identify requirements
 
-1. Identify governance requirements:
-   - Work with stakeholders
-   - Review organizational policies
-   - Document standards
-   - Define controls
+2. Document governance requirements including:
+   - Security controls
+   - Access management
+   - Change management
+   - Disaster recovery
+   - Business continuity
+   - Risk management
 
-2. Implement requirements:
-   - Create policies
-   - Configure guardrails
-   - Enable monitoring
-   - Enforce compliance
+3. Incorporate requirements into:
+   - Architecture design
+   - Operational procedures
+   - Technology selection
+   - Deployment processes
 
-3. Validate implementation:
-   - Conduct audits
-   - Review configurations
-   - Test controls
-   - Document evidence
+4. Implement mechanisms to demonstrate conformance:
+   - Automated compliance checks
+   - Regular audits
+   - Documentation
+   - Reporting
 
-4. Maintain governance:
-   - Regular reviews
-   - Update policies
-   - Track changes
-   - Monitor compliance
+5. Regularly review and update governance requirements
 
 ### Best Practices
-
-- Document all governance requirements
-- Implement automated controls where possible
-- Regularly validate compliance
-- Maintain audit trails
-- Update requirements as needed
-- Train teams on governance policies
-- Monitor and report on compliance
+- Maintain clear documentation
+- Automate compliance validation
+- Regular review and updates
+- Train teams on requirements
+- Monitor conformance
+- Report on compliance status
 
 ## Evaluate Compliance Requirements
 
-### Overview
-Compliance requirements come from external regulations, industry standards, and contractual obligations. These must be identified, implemented and continuously validated.
+### Purpose
+Regulatory, industry and internal compliance requirements drive organizational priorities and may restrict technology or location choices. Compliance frameworks must be validated through audits.
 
-### Implementation Guidance
+### Implementation
+1. Work with security and governance teams to identify applicable compliance frameworks:
+   - Regulatory requirements (HIPAA, PCI DSS, etc)
+   - Industry standards
+   - Internal policies
 
-1. Identify requirements:
-   - Review regulations
-   - Assess industry standards
-   - Document obligations
-   - Define controls
+2. Document compliance requirements including:
+   - Data handling
+   - Security controls
+   - Access management  
+   - Audit procedures
+   - Reporting requirements
 
-2. Implement controls:
-   - Configure systems
-   - Enable monitoring
-   - Document procedures
-   - Train personnel
+3. Incorporate requirements into:
+   - Architecture
+   - Operations
+   - Technology selection
+   - Geographic decisions
 
-3. Validate compliance:
-   - Conduct assessments
-   - Review evidence
-   - Test controls
-   - Document results
+4. Implement validation mechanisms:
+   - Automated compliance checks
+   - Regular audits
+   - Documentation
+   - Reporting
 
-4. Maintain compliance:
-   - Regular reviews
-   - Update controls
-   - Track changes
-   - Generate reports
+5. Train teams on compliance requirements
 
 ### Best Practices
-
-- Document all compliance requirements
-- Implement automated controls
-- Regularly validate compliance
-- Maintain audit evidence
-- Update requirements as needed
-- Train teams on compliance
-- Monitor and report status
-- Conduct regular audits
+- Clear documentation
+- Regular audits and validation
+- Automated compliance checks
+- Team training
+- Monitoring and reporting
+- Process for updates

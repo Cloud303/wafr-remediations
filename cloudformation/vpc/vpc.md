@@ -1,62 +1,66 @@
-#  VPC CloudFormation Template
+#  AWS VPC CloudFormation Template
 
-This CloudFormation template creates a customizable VPC infrastructure with public, private, and data subnets across multiple Availability Zones.
+This CloudFormation template creates a VPC with configurable public, private and data subnets across multiple Availability Zones. It includes NAT Gateways, Internet Gateway, VPC Endpoints and Network ACLs.
 
 ## Features
 
-- Configurable number of Availability Zones (1-4)
-- Public subnets with Internet Gateway
-- Optional private subnets with NAT Gateways 
-- Optional data subnets
-- Customizable CIDR blocks
+- Creates VPC spanning 1-4 Availability Zones
+- Optional public, private and data subnets in each AZ
+- NAT Gateway in each AZ for private subnet internet access
+- Internet Gateway for public subnet internet access
+- Optional S3 and ECR VPC Endpoints
+- Network ACLs for each subnet tier
 - VPC Flow Logs
-- S3 and ECR VPC Endpoints
-- Custom DNS settings
+- Custom DHCP Options with optional domain controllers
+- Configurable CIDR ranges
+- Resource tagging
 
 ## Parameters
 
-The template accepts the following parameters:
-
-- Number of Availability Zones (1-4)
-- Availability Zone names
+### VPC Structure
+- Number of AZs (1-4)
+- Availability Zone selection
 - VPC CIDR prefix
-- Option to specify custom subnet CIDRs
-- Options to create private and data subnets
-- Custom DNS settings
-- VPC Flow Log retention period
-- Options for S3 and ECR VPC Endpoints
+- Enable/disable private subnets
+- Enable/disable data subnets
+- Manual or automatic CIDR allocation
+
+### DNS Settings
+- Custom internal domain name
+- Up to 3 domain controller IPs
+- DHCP options
+
+### VPC Endpoints
+- S3 endpoint (optional)
+- ECR endpoint (optional) 
+
+### Other Settings
+- Flow log retention period
 - Environment tag
-
-## Resources Created
-
-- VPC
-- Internet Gateway
-- Public subnets (1-4)
-- Private subnets (0-4) 
-- Data subnets (0-4)
-- NAT Gateways (1 per AZ)
-- Route tables
-- Network ACLs
-- VPC Flow Logs
-- S3 VPC Endpoint
-- ECR VPC Endpoints
 
 ## Outputs
 
-The template exports the following outputs:
+The template exports the following resources:
 
 - VPC ID and CIDR
-- Subnet IDs 
+- Public subnet IDs
+- Private subnet IDs 
+- Data subnet IDs
 - Route table IDs
 - NACL IDs
 
 ## Usage
 
-1. Upload the template to CloudFormation
-2. Specify the desired parameters 
-3. Create the stack
-4. Reference the exported outputs in other stacks
+1. Upload template to CloudFormation
+2. Specify required parameters
+3. Create stack
 
-## Customization
+The template will create the VPC infrastructure based on the parameters provided.
 
-The template can be customized by modifying the parameters, conditions, and resources as needed for your specific requirements.
+## Requirements
+
+- AWS account with permissions to create VPC resources
+- Sufficient Elastic IP address quota for NAT Gateways
+
+## Version
+vpc-0.4

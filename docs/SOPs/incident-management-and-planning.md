@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Incident Management and Planning
-permalink: /sops/incident-management-and-planning/
+title: 'Incident Management and Planning'
+permalink: '/sops/incident-management-and-planning/'
 resource: true
 categories: [SOPs]
 ---
@@ -10,195 +10,140 @@ categories: [SOPs]
 
 ## Overview
 
-This Standard Operating Procedure (SOP) provides guidance on establishing and maintaining an effective incident management program for cloud workloads. The intended audience includes security teams, incident responders, cloud administrators, and application teams responsible for responding to and recovering from security incidents.
+This Standard Operating Procedure (SOP) provides guidance for establishing and maintaining an effective incident management and planning program. The intended audience includes security teams, incident responders, and IT operations personnel responsible for responding to and managing security incidents.
 
-The SOP covers key aspects of incident management including identifying key personnel and resources, developing incident response plans, and regularly assessing security controls. Following these procedures helps ensure consistent and effective response to security incidents while minimizing business impact.
+The purpose of this SOP is to ensure the organization has proper processes, personnel, and tools in place to effectively detect, respond to, and recover from security incidents. This includes identifying key roles and responsibilities, developing incident response plans and playbooks, and regularly validating security controls.
 
-## Identify Key Personnel and External Resources
+## Identify key personnel and external resources
 
 ### Overview
-Having clearly defined roles and responsibilities is critical for effective incident response. This section outlines how to identify and document key personnel and external resources needed during security incidents.
+Having clearly defined roles and responsibilities is critical for effective incident response. The organization must identify and document key personnel, both internal and external, who will be involved in responding to security incidents.
 
 ### Key Personnel Roles
 
-The following key roles should be identified and documented:
+The following key roles should be defined:
 
 - **Incident Manager**: Has overall authority during incident response
 - **Incident Responders**: Responsible for investigation and remediation activities
 - **Communications Lead**: Handles internal and external communications
-- **Subject Matter Experts**: Provide expertise on impacted systems and applications
+- **Subject Matter Experts**: Provide expertise on specific systems/applications
 
 For each role:
-- Document primary and backup contacts with multiple contact methods
-- Define clear responsibilities and authority levels
-- Establish escalation paths when personnel are unavailable
-- Review and update contact information regularly
+- Document primary and backup personnel
+- Include multiple contact methods (phone, email, etc)
+- Define responsibilities and authority levels
+- Establish escalation paths
 
 ### External Resources
 
-Identify and document external parties that may be needed:
+Identify and document external parties that may need to be engaged:
 
-- AWS Support contacts and support plan details
-- Third-party security vendors and consultants  
+- AWS Support contacts and account team
+- Managed security service providers
 - Legal counsel
 - PR/Communications firms
 - Law enforcement contacts
-- Regulatory bodies that need to be notified
+- Industry regulators
+- Forensics specialists
 
 Maintain updated contact information and engagement procedures for all external resources.
 
-### Implementation Steps
+### Implementation Guidance
 
-1. Create and maintain contact lists with:
-   - Names and roles
-   - Multiple contact methods (phone, email, etc)
-   - Escalation procedures
-   - Response time expectations
+1. Create and maintain a contact roster with all key personnel and external resources
+2. Document roles, responsibilities and authority levels
+3. Establish on-call schedules and escalation procedures
+4. Regularly validate contact information accuracy
+5. Conduct periodic training on roles and responsibilities
+6. Include external resource engagement procedures in incident response plans
+7. Consider using AWS Systems Manager Incident Manager to manage contacts and escalations
 
-2. Document engagement procedures for external resources:
-   - Support contract details
-   - SLAs and response times
-   - Methods for engaging support
-   - Required information for support requests
-
-3. Regularly review and update:
-   - Contact information accuracy
-   - Role assignments
-   - External resource contracts/agreements
-   - Notification requirements
-
-4. Consider using AWS Systems Manager Incident Manager to:
-   - Manage contacts and on-call schedules
-   - Define response plans
-   - Create escalation paths
-   - Track incidents
-
-## Develop Incident Management Plans
+## Develop incident management plans
 
 ### Overview
-A comprehensive incident management plan provides the foundation for responding to and recovering from security incidents. The plan should document processes, procedures and playbooks for handling different types of incidents.
+Incident management plans provide the foundation and framework for responding to security incidents. Plans should document response procedures, communication protocols, and decision-making authority.
 
 ### Plan Components
 
-The incident management plan should include:
+Key components to include:
 
-1. Incident Response Team Overview
-   - Team structure and organization
-   - Roles and responsibilities 
-   - Training requirements
-   - Communication procedures
+- Incident classification and severity definitions
+- Roles and responsibilities 
+- Communication and escalation procedures
+- Response procedures and playbooks
+- Documentation requirements
+- Post-incident review process
 
-2. Incident Classification Framework
-   - Severity levels and definitions
-   - Impact assessment criteria
-   - Prioritization guidelines
-   - Escalation thresholds
+### Plan Development
 
-3. Response Procedures
-   - Initial assessment and triage
-   - Investigation processes
-   - Containment strategies
-   - Eradication procedures
-   - Recovery steps
-   - Post-incident activities
+When developing plans:
 
-4. Communication Plans
-   - Internal notification procedures
-   - External communication guidelines
-   - Stakeholder management
-   - Status reporting requirements
+1. Base on industry frameworks (NIST, ISO, etc)
+2. Align with business requirements and risk tolerance
+3. Consider regulatory requirements
+4. Document clear decision-making authority
+5. Define communication protocols
+6. Include specific response procedures
+7. Establish documentation standards
+8. Define metrics and success criteria
 
-5. Documentation Requirements
-   - Incident logging procedures
-   - Evidence handling guidelines
-   - Chain of custody processes
-   - Post-incident reporting
+### Implementation Guidance
 
-### Implementation Steps
+1. Document baseline incident response plan
+2. Develop specific playbooks for common scenarios
+3. Define severity levels and response requirements
+4. Establish communication templates and procedures
+5. Create documentation standards and forms
+6. Define post-incident review process
+7. Regularly review and update plans
+8. Train personnel on plan execution
+9. Exercise plans through tabletop drills
 
-1. Document incident response procedures:
-   - Create detailed playbooks for common scenarios
-   - Define clear roles and responsibilities
-   - Establish communication protocols
-   - Set documentation standards
-
-2. Test and validate plans through:
-   - Tabletop exercises
-   - Simulated incidents
-   - After-action reviews
-   - Plan updates based on lessons learned
-
-3. Maintain and update plans:
-   - Regular review cycles
-   - Incorporation of lessons learned
-   - Updates for new threats/risks
-   - Testing of changes
-
-4. Train personnel on plans:
-   - Initial training for new team members
-   - Regular refresher training
-   - Scenario-based exercises
-   - Documentation of training
-
-## Regularly Assess Security Properties of the Pipelines
+## Regularly assess security properties of the pipelines
 
 ### Overview
-The security of deployment pipelines is critical for maintaining the integrity of applications and infrastructure. Regular assessment helps identify vulnerabilities and ensures controls remain effective.
+The security of CI/CD pipelines is critical since they are used to build and deploy applications. Regular assessment helps ensure pipeline security controls remain effective.
 
 ### Key Assessment Areas
 
-1. Access Controls
-   - IAM roles and permissions
-   - Secrets management
-   - Authentication mechanisms
-   - Authorization policies
+- Access controls and permissions
+- Secret management
+- Infrastructure security
+- Code scanning and testing
+- Deployment controls
+- Monitoring and logging
+- Change management
 
-2. Pipeline Configuration
-   - Build environments
-   - Testing frameworks
-   - Deployment processes
-   - Change management
+### Assessment Activities
 
-3. Security Controls
-   - Code scanning
-   - Vulnerability testing
-   - Compliance checks
-   - Audit logging
+1. Review pipeline configurations and settings
+2. Validate access controls and permissions
+3. Test security scanning effectiveness
+4. Verify secret management practices
+5. Assess infrastructure security
+6. Review monitoring and alerting
+7. Validate change management processes
 
-### Implementation Steps
+### Implementation Guidance
 
-1. Establish assessment schedule:
-   - Regular security reviews
-   - Automated scanning
-   - Manual testing
-   - Third-party assessments
-
-2. Define assessment criteria:
-   - Security requirements
-   - Compliance standards
-   - Best practices
-   - Risk thresholds
-
-3. Document findings and remediation:
-   - Issue tracking
-   - Remediation plans
-   - Verification testing
-   - Metrics collection
-
-4. Review and improve:
-   - Update security controls
-   - Enhance monitoring
-   - Refine processes
-   - Document lessons learned
+1. Define pipeline security standards
+2. Create assessment procedures and checklists
+3. Establish regular assessment schedule
+4. Document findings and track remediation
+5. Review assessment results with stakeholders
+6. Update standards based on findings
+7. Maintain assessment records
+8. Report on assessment metrics
 
 ### Best Practices
 
-- Use automated tools for continuous assessment
+- Use infrastructure as code for pipeline configuration
 - Implement least privilege access
-- Maintain detailed audit logs
-- Regular security training for pipeline teams
-- Clear documentation of security controls
-- Incident response procedures for pipeline issues
-- Regular testing of security controls
-- Change management processes
+- Enable comprehensive logging
+- Use automated security testing
+- Maintain separate environments
+- Regular credential rotation
+- Change management controls
+- Monitoring and alerting
 
+Regular assessment of pipeline security helps maintain the integrity of the software delivery process and reduces risk of compromise.

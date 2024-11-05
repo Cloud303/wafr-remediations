@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Communication and Escalation
-permalink: /sops/communication-and-escalation/
+title: 'Communication and Escalation'
+permalink: '/sops/communication-and-escalation/'
 resource: true
 categories: [SOPs]
 ---
@@ -11,144 +11,117 @@ categories: [SOPs]
 ## Overview
 
 This Standard Operating Procedure (SOP) defines best practices for communication and escalation 
-within the organization. It provides guidance on establishing executive sponsorship, encouraging 
-escalation, and ensuring communications are timely, clear and actionable.
+within the organization. It is intended for all employees, managers, and leaders to ensure clear, 
+effective communication and appropriate escalation of issues.
 
-**Intended Audience**: This SOP is intended for all employees, managers, and executives who need 
-to communicate or escalate issues within the organization.
+The primary audience for this SOP includes:
+
+- Executive leadership and management
+- Team leads and managers
+- Individual contributors
+- Support and operations teams
 
 ## Provide Executive Sponsorship
 
-Executive sponsorship is critical for setting clear expectations and direction for organizational 
-outcomes. The executive sponsor advocates for and drives adoption of best practices and evolution 
-of the organization.
-
 ### Why It's Important
 
-- Provides clear leadership accountability for desired outcomes
-- Helps align teams and individuals on priorities and direction
-- Enables faster decision making and removal of obstacles
-- Drives cultural change and adoption of best practices
-- Ensures adequate resources and support
+Executive sponsorship is critical for establishing clear expectations and direction for organizational 
+outcomes. When executive leadership actively sets direction, assigns ownership, takes accountability, 
+and defines work, individuals across the organization can mobilize effectively toward desired 
+objectives.
 
 ### Implementation Guidance
 
-1. Designate a primary executive sponsor with authority to make critical decisions
+Executive sponsors should:
 
-2. Have the executive sponsor:
-   - Clearly communicate vision, strategy and goals
-   - Set and publish measurable objectives
-   - Track achievement of goals regularly
-   - Provide necessary resources
-   - Advocate for teams by removing obstacles
-   - Drive adoption of best practices
-   - Encourage evolution and continuous improvement
+- Clearly communicate and share vision, direction and goals so team members know what is expected
+- Set expectations by defining and publishing measurable goals
+- Track achievement of goals regularly and share results
+- Provide necessary resources by bringing people and teams together to collaborate
+- Advocate for teams by understanding their performance and external factors affecting them
+- Drive adoption of best practices by acknowledging quantifiable benefits
+- Encourage evolution by creating a culture of continuous improvement
 
-3. Establish regular executive reviews to:
-   - Monitor progress toward objectives
-   - Identify and address blockers
-   - Make course corrections as needed
-   - Celebrate successes
+### Best Practices
 
-4. Create communication plans that specify:
-   - Key messages for different audiences
-   - Communication channels and frequency
-   - Feedback mechanisms
-   - Metrics to measure effectiveness
+- Have a designated primary executive sponsor to lead and drive transformation
+- Define clear business outcomes and assign ownership/accountability
+- Establish clearly defined business objectives for initiatives
+- Document key business metrics to drive transformation
+- Communicate vision consistently to all teams
+- Set and manage expectations through regular in-person events
+- Accept feedback on communications effectiveness
+- Schedule regular communication events to understand challenges
+- Actively engage initiatives to verify teams understand outcomes
+- Look for blockers, inspect metrics, and measure progress in status meetings
 
 ## Escalation is Encouraged
 
-Team members should be encouraged to escalate issues and concerns to higher-level decision makers 
-when they believe outcomes are at risk. This should be viewed as a positive aspect of the 
-organization's culture.
-
 ### Why It's Important
 
-- Enables early identification and prevention of issues
-- Reduces mean time to resolution for problems
-- Empowers employees to raise concerns
-- Creates psychological safety
-- Drives continuous improvement
+Team members must be encouraged to escalate issues and concerns to higher-level decision makers 
+when they believe desired outcomes are at risk. This should be a core feature of organizational 
+culture driven at all levels. Early and frequent escalation helps identify and prevent issues 
+before they cause incidents.
 
 ### Implementation Guidance
 
-1. Document clear escalation policies that:
-   - Define when to escalate
-   - Specify escalation paths and points of contact
-   - Include SLAs for responses
-   - Protect employees from retribution
+To implement effective escalation:
 
-2. Train employees on:
-   - How to identify issues requiring escalation
-   - Proper escalation procedures
-   - Available escalation channels
-   - Expected outcomes
+- Define policies requiring teams to have effective plans to reverse changes within specified periods
+- Analyze impact level of all changes related to workload components
+- Allow repeatable changes to be standardized and pre-authorized if following consistent workflows
+- Reduce potential impact by making changes smaller so recovery takes less time
+- Integrate tools and workflows to enforce policies programmatically
+- Make change data visible to improve diagnosis speed
+- Use monitoring to verify deployment success/failure
+- Measure outage duration to improve recovery plans
 
-3. Create escalation mechanisms like:
-   - Management chain escalation
-   - Emergency response teams
-   - On-call rotations
-   - Incident management processes
+### Best Practices
 
-4. When escalating:
-   - Clearly describe the situation and risks
-   - Specify criticality and urgency
-   - Identify impacted stakeholders
-   - Recommend solutions if possible
-   - Follow up to ensure resolution
+- Document escalation policies, standards and expectations
+- Train and empower workers for early/frequent escalation
+- Build mechanisms for escalation like Andon cord systems
+- Have documented procedures for when/how to escalate
+- Define series of people with increasing authority
+- Protect employees who escalate from retribution
+- Encourage continuous improvement feedback loops
+- Leadership should periodically reemphasize policies
 
-5. Regularly reinforce that escalation is encouraged through:
-   - Leadership messaging
-   - Team discussions
-   - Performance reviews
-   - Success stories
-
-## Communications are Timely, Clear and Actionable
-
-Effective communication is essential for coordinating work and achieving objectives. Communications 
-should provide the right information to the right people at the right time to enable action.
+## Communications are Timely, Clear, and Actionable
 
 ### Why It's Important
 
-- Ensures alignment on priorities and direction
-- Reduces confusion and rework
-- Enables faster decision making
-- Builds trust through transparency
-- Drives operational excellence
+Leadership must create strong and effective communications, especially when adopting new strategies, 
+technologies or ways of working. Clear communication ensures teams remain informed and motivated to 
+work together rather than against each other.
 
 ### Implementation Guidance
 
-1. Establish communication standards:
-   - Use clear, concise language
-   - Include context and background
-   - Specify actions needed
-   - Set deadlines and priorities
-   - Define success criteria
+To implement effective communications:
 
-2. Choose appropriate communication channels:
-   - Email for formal communications
-   - Chat for quick interactions
-   - Meetings for discussions
-   - Documentation for reference
-   - Status pages for broad updates
+- Establish core team accountable for communication plans
+- Institute single-threaded ownership for oversight
+- Work with stakeholders to agree on standards and practices
+- Craft messages appropriate for staff
+- Build strategic mechanisms like announcements, calendars, meetings
+- Provide necessary context, details and time for action
+- Implement tools for tactical communications
+- Measure effectiveness of communications
+- Establish feedback loops
+- Set up alternate contacts for accounts
+- Have escalation and reverse escalation plans
+- Prioritize repeatable actions for automation
+- Analyze communications from alert systems
 
-3. Consider the audience:
-   - Level of detail needed
-   - Technical knowledge
-   - Role and responsibilities
-   - Time constraints
-   - Cultural factors
+### Best Practices
 
-4. Make communications actionable:
-   - Clearly state what's needed
-   - Provide necessary resources
-   - Set expectations
-   - Enable feedback
-   - Follow up as needed
-
-5. Measure effectiveness through:
-   - Feedback surveys
-   - Action completion rates
-   - Time to resolution
-   - Employee satisfaction
-   - Business outcomes
+- Design communication strategies to address impact of change
+- Ensure individuals understand importance of their role
+- Use email as passive mechanism only
+- Management spends time with individuals to explain responsibilities
+- Leaders engage directly in smaller venues when needed
+- Encourage diverse opinions and perspectives
+- Expand roles and responsibilities
+- Provide safe and welcoming environment
+- Support team member participation

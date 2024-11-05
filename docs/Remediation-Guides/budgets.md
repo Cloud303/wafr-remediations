@@ -1,67 +1,77 @@
 ---
 layout: page
-title: 'AWS Budget Deployment Guide'
+title: 'AWS Budget Notification Deployment Guide'
 permalink: '/remediation-guides/budgets/'
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  AWS Budget Deployment Guide
+#  AWS Budget Notification Deployment Guide
 
-## Benefits of AWS Budget Deployment
+## Benefits
+Deploying AWS Budget notifications provides several key advantages:
+- Early warning system for cost overruns
+- Proactive cost management and control
+- Automated email alerts when spending thresholds are reached
+- Comprehensive cost tracking including credits, discounts, and support fees
+- Customizable budget periods and notification thresholds
+- Simple setup through CloudFormation
 
-Setting up AWS Budgets provides several key advantages:
+## Prerequisites
+Before deploying, ensure you have:
+- An AWS account with permissions to create budgets
+- A valid email address for notifications
+- Access to AWS CloudFormation
 
-- **Cost Control**: Get early warnings when spending approaches defined thresholds
-- **Financial Planning**: Track costs against monthly, quarterly or annual budgets
-- **Automated Monitoring**: Receive email notifications without manual tracking
-- **Comprehensive Coverage**: Monitor all cost types including credits, support, taxes etc.
-- **Customizable Thresholds**: Set notification thresholds that match your risk tolerance
+## Deployment Steps
 
-## Quick Start
+1. Download the CloudFormation template:
+   - Template URL: [budgets.yml](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/monitoring/budgets.yml)
 
-1. Access the budget template [here](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/monitoring/budgets.yml)
+2. Navigate to AWS CloudFormation console:
+   - Sign in to AWS Console
+   - Go to CloudFormation service
+   - Click "Create stack" > "With new resources"
 
-2. Deploy via AWS Console:
-   - Open CloudFormation
-   - Click "Create Stack" 
-   - Choose "With new resources (standard)"
-   - Upload template file or specify template URL
+3. Upload template:
+   - Choose "Upload a template file"
+   - Select the downloaded budgets.yml file
+   - Click "Next"
 
-3. Configure Parameters:
-   ```
-   pAmount: Your budget amount (required)
-   pTimeUnit: MONTHLY, QUARTERLY, or ANNUALLY
-   pNotificationThreshold: Percentage for alerts (default 80)
-   pNotificationEmail: Email for notifications (required)
-   ```
+4. Configure stack parameters:
+   - **pAmount**: Enter your desired budget amount in USD
+   - **pTimeUnit**: Select budget reset period (MONTHLY/QUARTERLY/ANNUALLY)
+   - **pNotificationThreshold**: Set notification threshold percentage (default: 80)
+   - **pNotificationEmail**: Enter email address for notifications
+   
+5. Review and create:
+   - Review the configuration
+   - Click "Create stack"
 
-4. Review and create stack
+6. Verify deployment:
+   - Wait for stack creation to complete
+   - Check AWS Budgets console to confirm budget creation
+   - Verify receipt of confirmation email
 
-## Verification
+## Post-Deployment
 
-After deployment:
+After successful deployment:
+1. The budget will be created with name format: `{AccountId}-cloud303-billing-alarm`
+2. You'll receive a subscription confirmation email
+3. Notifications will trigger when spending exceeds the configured threshold
 
-1. Navigate to AWS Billing Console
-2. Select "Budgets" from left menu  
-3. Verify budget appears with correct:
-   - Amount
-   - Time period
-   - Notification settings
-   - Email recipient
+## Monitoring
+- Monitor email notifications for cost alerts
+- Review budget vs actual spending in AWS Budgets console
+- Adjust thresholds and amounts as needed through stack updates
 
-## Maintenance
+## Support
+For issues or questions:
+- Review the template documentation
+- Check AWS Budgets documentation
+- Contact your AWS support team
 
-- Budget will automatically reset based on chosen time unit
-- Notifications will send when spending exceeds threshold
-- Update stack parameters if budget amounts need adjustment
-- Delete stack to remove budget and notifications
-
-## Troubleshooting
-
-Common issues:
-- Invalid email format - Ensure email is correctly formatted
-- Missing permissions - Verify IAM permissions for budget creation
-- Failed notifications - Check email spam filters
-
-For additional support, refer to AWS Budgets documentation.
+## Notes
+- Budget notifications are free of charge
+- Consider setting conservative thresholds initially
+- Review and adjust settings based on spending patterns

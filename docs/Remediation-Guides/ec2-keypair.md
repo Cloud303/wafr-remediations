@@ -8,65 +8,76 @@ categories: [Remediation Guides]
 
 #  EC2 Key Pair Deployment Guide
 
-This guide walks through deploying an EC2 Key Pair using CloudFormation, with secure storage of the private key in AWS Systems Manager Parameter Store.
-
 ## Benefits
-
-- **Automated Key Management**: Eliminates manual key pair creation and storage
-- **Secure Storage**: Private key is automatically stored in Parameter Store with encryption
-- **Access Control**: Leverage AWS IAM for granular access control to the private key
-- **Auditability**: Track key pair creation and access through CloudTrail
-- **Infrastructure as Code**: Maintain key pairs as part of your IaC workflow
+Deploying this template provides several key advantages:
+- Automated and consistent creation of EC2 key pairs across environments
+- Secure storage of private keys in AWS Systems Manager Parameter Store
+- Simplified key management through CloudFormation
+- Proper tagging and organization of key pair resources
+- Controlled access through IAM policies
 
 ## Prerequisites
-
-- AWS CLI configured with appropriate permissions
-- Access to AWS CloudFormation and Systems Manager
+Before deploying, ensure you have:
+- AWS account access with permissions to:
+  - Create and manage EC2 key pairs
+  - Create and manage Parameter Store entries
+  - Deploy CloudFormation stacks
+- AWS CLI configured with appropriate credentials
+- Basic understanding of CloudFormation concepts
 
 ## Deployment Steps
 
 1. Download the CloudFormation template:
-   [EC2 Key Pair Template](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/ec2-keypair.yml)
+   - Template URL: [ec2-keypair.yml](https://github.com/Cloud303/wafr-remediations/blob/main/cloudformation/ec2/ec2-keypair.yml)
 
-2. Navigate to AWS CloudFormation in the console
+2. Deploy via AWS Console:
+   - Navigate to CloudFormation in AWS Console
+   - Click "Create Stack" and choose "With new resources"
+   - Upload the template file
+   - Click "Next"
 
-3. Click "Create Stack" and choose "With new resources"
-
-4. Upload the template file
-
-5. Configure stack parameters:
+3. Configure Stack Parameters:
    - **pKeyPairName**: Enter a name following the format `<CLIENT>-<ENV>-<YYYY-MM-DD>`
-   - **pEnvironmentTag**: Select the appropriate environment (e.g. production, staging)
+   - **pEnvironmentTag**: Select environment (production, staging, sandbox, etc.)
 
-6. Review and create the stack
+4. Configure Stack Options:
+   - Add any additional tags if needed
+   - Set stack failure options
+   - Click "Next"
 
-7. Once complete, the private key will be stored in Parameter Store at:
-   `/ec2/keypair/key-<name>`
+5. Review and Create:
+   - Review all configurations
+   - Acknowledge any capabilities if prompted
+   - Click "Create stack"
 
-## Accessing the Private Key
+## Post-Deployment
 
-To retrieve the private key:
+1. Verify Resources:
+   - Check EC2 console for the new key pair
+   - Verify Parameter Store entry at `/ec2/keypair/key-*`
 
-1. Open AWS Systems Manager
-2. Navigate to Parameter Store
-3. Locate the parameter with path `/ec2/keypair/key-<name>`
-4. Use AWS CLI or SDK to securely access the key value
+2. Access Management:
+   - Review and configure IAM policies to restrict access to the private key
+   - Document who has access to the key pair
 
 ## Security Best Practices
 
-- Restrict Parameter Store access using IAM policies
-- Rotate keys regularly (recommended every 90 days)
-- Monitor access to the private key through CloudTrail
-- Consider using AWS KMS customer managed keys for additional encryption
+- Limit access to the Parameter Store entry containing the private key
+- Regularly audit access to the key pair
+- Rotate keys according to your security policies
+- Monitor CloudTrail for any unauthorized access attempts
 
-## Cleanup
+## Troubleshooting
 
-To remove the key pair:
-
-1. Delete any EC2 instances using the key pair
-2. Delete the CloudFormation stack
-3. Verify the parameter is removed from Parameter Store
+If deployment fails:
+1. Check CloudFormation events for error messages
+2. Verify IAM permissions
+3. Ensure parameter values meet requirements
+4. Review service quotas if applicable
 
 ## Support
 
-For issues or questions, please open a GitHub issue in the template repository.
+For issues or questions:
+- Review CloudFormation documentation
+- Check AWS service status
+- Contact your AWS administrator

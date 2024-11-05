@@ -1,58 +1,74 @@
-#  RDS Secrets Manager Rotation CloudFormation Template
+#  RDS Secrets Manager Rotation Template
 
-This CloudFormation template creates and manages secrets in AWS Secrets Manager for RDS database credentials, along with an automated rotation mechanism using AWS Lambda.
+This CloudFormation template creates and configures AWS Secrets Manager secrets for RDS database credentials with automatic rotation capabilities.
 
 ## Overview
 
-The template sets up the following resources:
+The template sets up:
 
-- A Secrets Manager secret for RDS database credentials
-- A Lambda function to rotate the secret
-- IAM roles and policies for the Lambda function
-- Security group for RDS access
-- Secrets Manager rotation schedule
+- Secrets Manager secret for database credentials
+- Lambda rotation function for automatic password rotation
+- Required IAM roles and security groups
+- VPC endpoint configurations
+
+## Prerequisites
+
+Before deploying this template, you need:
+
+- An existing VPC with private subnets
+- An existing RDS instance/cluster
+- A KMS key for encrypting secrets
+- Security group for VPC endpoints
 
 ## Parameters
 
-The template requires the following parameters:
-
-- `pRdsDbPort`: RDS database port (default: 3306)
-- `pEnvironmentTag`: Environment tag for resources
-- `pVpcId`: VPC ID
-- `pSecurityGroupID`: Security Group ID  
-- `pVpcCidr`: VPC CIDR block
-- `pKmsARN`: KMS key ARN for Secrets Manager
-- `pPrivsubnetA`: Private subnet ID
-- `pPrivsubnetB`: Private subnet ID
-- `pRdsInstanceIdentifier`: RDS instance identifier
-- `pRDSDBARN`: RDS cluster ARN
+| Parameter | Description |
+|-----------|-------------|
+| pRdsDbPort | Database port (3306, 1433, or 5432) |
+| pEnvironmentTag | Environment tag (production, staging, etc) |
+| pVpcId | VPC ID |
+| pSecurityGroupID | Security Group ID |
+| pVpcCidr | VPC CIDR range |
+| pKmsARN | KMS key ARN for Secrets Manager |
+| pPrivsubnetA | First private subnet ID |
+| pPrivsubnetB | Second private subnet ID |
+| pRdsInstanceIdentifier | RDS instance identifier |
+| pRDSDBARN | RDS cluster ARN |
 
 ## Resources Created
 
-- `ClusterSecurityGroup`: Security group for RDS access
-- `iamLambdaRole`: IAM role for Lambda rotation function
-- `iamLambdaPolicy`: IAM policy for Lambda role
-- `DBSecretsManagerSecret`: Secrets Manager secret for DB credentials
-- `DBSecretsManagerSecretAttachment`: Attaches secret to RDS instance
-- `DBSecretsManagerSecretRotation`: Rotation schedule for secret
-- `SecretsManagerVPCEndpointIngress`: Security group ingress rule
-- `DBSecretsManagerSecretRotationFunction`: Lambda function for secret rotation
-- `DBSecretsManagerLambdaInvokePermission`: Lambda invoke permission
+- Security group for RDS access
+- IAM role and policy for Lambda rotation function
+- Secrets Manager secret with random password generation
+- Secret attachment to RDS instance
+- Rotation schedule (60 day rotation period)
+- Security group ingress rules
+- Lambda rotation function using AWS Serverless Application Repository
+
+## Security Features
+
+- Secrets encrypted with KMS
+- Automatic password rotation every 60 days
+- VPC endpoint security group controls
+- Least privilege IAM permissions
 
 ## Usage
 
-1. Ensure you have the necessary parameter values ready
-2. Deploy the template using AWS CloudFormation
-3. The template will create the secret and set up automated rotation
+1. Deploy the template through CloudFormation
+2. Provide required parameter values
+3. Secret will be created and attached to RDS instance
+4. Rotation will occur automatically every 60 days
 
 ## Notes
 
-- The secret is rotated automatically every 60 days
-- The Lambda function uses the AWS Serverless Application Repository
-- Make sure the specified VPC, subnets, and security groups exist and are correctly configured
+- Uses PostgreSQL rotation function from AWS Serverless Application Repository
+- Requires VPC endpoints for Secrets Manager access
+- Password excludes special characters: " @ / \
+- Generated passwords are 16 characters long
 
-## Security
+## Tags
 
-- Uses KMS for encryption
-- Leverages VPC endpoints for secure communication
-- Follows least privilege principle for IAM roles
+Resources are tagged with:
+- Name
+- Environment
+- controlled-by: cloudformation-${stackname}

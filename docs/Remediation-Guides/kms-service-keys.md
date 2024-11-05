@@ -1,29 +1,33 @@
 ---
 layout: page
-title: 'Guide: Deploying AWS Service KMS Keys with CloudFormation'
+title: 'Deploying AWS KMS Service Keys'
 permalink: '/remediation-guides/kms-service-keys/'
 resource: true
 categories: [Remediation Guides]
 ---
 
-#  Guide: Deploying AWS Service KMS Keys with CloudFormation
+#  Deploying AWS KMS Service Keys
 
-## Benefits of Deploying Service-Specific KMS Keys
+This guide walks through deploying a CloudFormation template that creates KMS encryption keys for various AWS services. Using customer-managed KMS keys provides several benefits:
 
-- **Enhanced Security**: Customer-managed keys provide greater control over encryption compared to AWS-managed keys
-- **Cross-Account Access**: Keys can be shared across accounts via KMS key policies
-- **Audit Capabilities**: Track key usage through CloudTrail logs
-- **Cost Optimization**: Consolidate key management and reduce operational overhead
-- **Compliance**: Meet regulatory requirements for data encryption and key management
+- Enhanced security through encryption of sensitive data
+- Granular access control via key policies
+- Ability to share keys across accounts
+- Audit logging of key usage
+- Automated key rotation
+
+## Prerequisites
+
+- AWS account with permissions to create CloudFormation stacks and KMS keys
+- Basic understanding of AWS KMS and CloudFormation
 
 ## Template Overview
 
-The CloudFormation template creates KMS keys for encrypting data across multiple AWS services including:
+The template creates customer-managed KMS keys for encrypting resources in services like:
 
 - EBS volumes
-- RDS databases  
-- EFS file systems
-- FSx file systems
+- RDS databases
+- EFS/FSx file systems  
 - S3 buckets
 - Systems Manager
 - ElastiCache
@@ -35,44 +39,53 @@ The CloudFormation template creates KMS keys for encrypting data across multiple
 
 ## Deployment Steps
 
-1. Download the template from the link above
+1. Navigate to CloudFormation in the AWS Console
 
-2. Navigate to AWS CloudFormation console
+2. Click "Create Stack" and choose "With new resources"
 
-3. Click "Create Stack" and choose "With new resources"
+3. Upload the template file or specify the template URL
 
-4. Upload the template file
+4. Configure stack parameters:
+   - Enable/disable creation of specific service keys using the parameters
+   - Set `pAddBackupAccess` if using AWS Backup with EFS
 
-5. Configure stack parameters:
-   - Set `true` for services that need KMS keys
-   - Set `false` to skip key creation for specific services
-   - Enable `pAddBackupAccess` if using AWS Backup with EFS
+5. Configure stack options:
+   - Add any tags
+   - Set IAM role if needed
+   - Configure stack failure options
 
 6. Review and create the stack
 
-7. Once complete, note the outputs:
-   - KMS key ARNs for each service
-   - IAM policy ARNs for S3 and SSM
+7. Wait for stack creation to complete (~5 minutes)
 
 ## Using the Keys
 
-- Reference key ARNs when creating encrypted resources
-- Attach IAM policies to roles that need access
-- Update key policies as needed for cross-account access
-- Monitor key usage in CloudTrail
+After deployment, you can:
+
+1. Reference key ARNs in other CloudFormation templates using cross-stack references:
+   ```yaml
+   KmsKeyId: !ImportValue ebsKeyArn
+   ```
+
+2. Attach the exported IAM policies to roles that need KMS access:
+   - `s3KmsPolicyArn` for S3 encryption
+   - `ssmKmsPolicyArn` for Systems Manager encryption
+
+3. Use the key aliases to reference keys in the console:
+   - Format: `alias/<service>-<stack-name>`
 
 ## Best Practices
 
-- Enable only required service keys to minimize costs
-- Document key usage and rotation policies
-- Regularly audit key access permissions
-- Consider enabling automatic key rotation
-- Back up key policies and metadata
+- Only create keys for services you plan to use
+- Review key policies to ensure least privilege access
+- Monitor key usage through CloudTrail
+- Consider costs - each active key is $1/month
+- Back up any data encrypted with these keys
 
-## Troubleshooting
+## Cleanup
 
-If deployment fails:
-- Verify IAM permissions
-- Check parameter values are `true` or `false`
-- Ensure service quotas allow additional KMS keys
-- Review CloudWatch logs for detailed errors
+To remove the keys:
+
+1. Ensure no resources are using the keys
+2. Delete the CloudFormation stack
+3. Keys will be scheduled for deletion with 7-30 day waiting period
